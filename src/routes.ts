@@ -1,4 +1,5 @@
 import { CouponsWebsiteController } from "./controller/CouponsWebsiteController"
+import { CouponsWebsiteLangagueBasedController } from "./controller/CouponsWebsiteLangagueBasedController"
 
 export const Routes = [{
     method: "get",
@@ -20,4 +21,11 @@ export const Routes = [{
     route: "/coupons-website/:id",
     controller: CouponsWebsiteController,
     action: "remove"
-}]
+},
+{
+    method: "get",
+    route: "/:lng/coupons-website",
+    controller: CouponsWebsiteLangagueBasedController,
+    action: "all"
+}
+]

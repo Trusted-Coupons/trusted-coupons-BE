@@ -1,0 +1,25 @@
+{
+   "compilerOptions": {
+     "target": "esnext",
+     "module": "commonjs",
+     "sourceMap": true,
+     "outDir": "./dist",
+     "removeComments": true,
+     "moduleResolution": "node",
+     "noImplicitAny": false,
+     "strictNullChecks": true,
+     "strictFunctionTypes": true,
+     "noImplicitThis": true,
+     "noUnusedLocals": true,
+     "noUnusedParameters": true,
+     "noImplicitReturns": true,
+     "noFallthroughCasesInSwitch": true,
+ 
+     //add decorator support
+     "allowSyntheticDefaultImports": false,
+     "emitDecoratorMetadata": true,
+     "experimentalDecorators": true
+   },
+   "include": ["./src/**/*.tsx", "./src/**/*.ts"],
+   "exclude": ["node_modules"]
+ }

@@ -12,7 +12,7 @@ export const getTableForLanguage = async (languageCode: string): Promise<Languag
   const languageData = await repository.findOne({ where: [{ Alpha_2: country }, { Alpha_3: country }] });
 
   const table = languageData
-    ? `coupons_website_${languageData.Alpha_2.toLowerCase()}_${languageData.Language1.toLowerCase()}`
+    ? `${languageData.Alpha_2.toLowerCase()}_${languageData.Language1.toLowerCase()}`
     : 'none';
   const statusCode = languageData ? 200 : 404;
 

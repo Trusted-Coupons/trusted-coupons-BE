@@ -70,4 +70,6 @@ export class Coupon {
 
     @Column()
     primary_location: string;
+
+    public table_name: string;
 }

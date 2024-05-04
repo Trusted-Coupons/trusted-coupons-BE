@@ -1,23 +1,19 @@
-import { CouponsWebsiteController } from "./controller/CouponsWebsiteController"
+import { CouponsController } from "./controller/CouponsController"
 
-export const Routes = [{
+type Routes = {
+    method: string;
+    route: string;
+    controller:any;
+    action: string;
+}
+
+const couponRoutes:Routes = {
     method: "get",
-    route: "/coupons-website",
-    controller: CouponsWebsiteController,
+    route: "/:ln/coupons",
+    controller: CouponsController,
     action: "all"
-}, {
-    method: "get",
-    route: "/coupons-website/:id",
-    controller: CouponsWebsiteController,
-    action: "one"
-}, {
-    method: "post",
-    route: "/coupons-website",
-    controller: CouponsWebsiteController,
-    action: "save"
-}, {
-    method: "delete",
-    route: "/coupons-website/:id",
-    controller: CouponsWebsiteController,
-    action: "remove"
-}]
+}
+
+export const Routes = [
+    couponRoutes
+]

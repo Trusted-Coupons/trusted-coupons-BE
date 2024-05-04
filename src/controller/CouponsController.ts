@@ -92,4 +92,33 @@ export class CouponsController {
     // Return the coupon object
     return coupon;
   }
+  async clicked(request: Request, _response: Response, _next: NextFunction): Promise<object | string> {
+    // Extract the coupon ID and language code from the request parameters
+    const id = request.params.id;
+    const ln_formated = request.params.ln_formated;
+
+    // Set the table path for the coupons repository
+    this.couponsWebRepository.metadata.tablePath = `coupons_website_${ln_formated}`;
+
+    // Find the coupon by its ID using the coupons repository
+    const coupon  = await this.couponsWebRepository
+        .createQueryBuilder()
+        .update()
+        .set({ rating: () => "rating + 1" })
+        .where("offer_id = :id", { id })
+        .execute();
+
+    // If the coupon is not found, return an error message
+    if (!coupon) {
+      return "Coupon not found";
+    }
+
+    // Return the coupon object
+    return {
+      "message": "Coupon clicked",
+      statusCode: 200
+    }
+  }
 }
+
+

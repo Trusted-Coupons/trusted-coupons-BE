@@ -12,5 +12,11 @@ export const Routes = [
         route: "/:ln_formated/coupon/:id",
         controller: CouponsController,
         action: "one"
+    },
+    {
+        method: "post",
+        route: "/:ln_formated/coupon/:id",
+        controller: CouponsController,
+        action: "clicked"
     }
 ]

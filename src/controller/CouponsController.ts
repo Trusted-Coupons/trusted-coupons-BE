@@ -15,7 +15,7 @@ export class CouponsController {
    * @param {Response} _response - The response object.
    * @return {Promise<Object[] | string>} An array of mapped coupons or an error message.
    */
-  async all(_request: Request, _next: NextFunction, _response: Response) {
+  async all(_request: Request, _next: NextFunction, _response: Response): Promise<object[] | string> {
     // Destructure the query parameters from the request
     const {
       query: { page, perPage },
@@ -73,7 +73,7 @@ export class CouponsController {
    * @param {NextFunction} _next - The next function.
    * @return {Promise<Object | string>} The coupon object if found, or an error message.
    */
-  async one(request: Request, _response: Response, _next: NextFunction) {
+  async one(request: Request, _response: Response, _next: NextFunction): Promise<object | string> {
     // Extract the coupon ID and language code from the request parameters
     const id = request.params.id;
     const ln_formated = request.params.ln_formated;

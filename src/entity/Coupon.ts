@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
-@Entity("coupons_website")
-export class CouponWebsite {
+@Entity("")
+export class Coupon {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -70,4 +70,9 @@ export class CouponWebsite {
 
     @Column()
     primary_location: string;
+
+    @Column()
+    rating: string;
+
+    public table_name: string;
 }

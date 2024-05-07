@@ -2,6 +2,7 @@ import "reflect-metadata"
 import { DataSource } from "typeorm"
 import { Coupon } from "./entity/Coupon" 
 import { CountryLanguage } from "./entity/CountryLanguage"
+import { Store} from "./entity/Store"
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -14,7 +15,8 @@ export const AppDataSource = new DataSource({
     logging: true,
     entities: [
         Coupon,
-        CountryLanguage
+        CountryLanguage,
+        Store
     ],
     migrations: [],
     migrationsRun: false,

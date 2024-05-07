@@ -18,7 +18,7 @@ export class CouponsController {
   async all(_request: Request, _next: NextFunction, _response: Response): Promise<object[] | string> {
     // Destructure the query parameters from the request
     const {
-      query: { page, perPage },
+      query: { page, perPage,store },
     } = _request;
 
     // Check if the language code is formatted correctly
@@ -44,11 +44,16 @@ export class CouponsController {
       const offset = (Number(page) - 1) * limit;
 
       // Retrieve the coupons from the repository
-      const coupons = await this.couponsWebRepository
+      const query = this.couponsWebRepository
         .createQueryBuilder()
         .take(limit)
         .offset(offset)
-        .getMany();
+
+        if(store){
+          query.where({ store })
+        }
+
+        const coupons = await query.getMany();
 
       // Map the coupons with the table name
       const mappedCoupons = coupons.map(coupon => ({

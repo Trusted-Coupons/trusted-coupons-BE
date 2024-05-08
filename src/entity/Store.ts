@@ -58,4 +58,10 @@ export class Store {
     country_language: string;
 
     public coupons = new Array<Coupon>();
+
+    public allCategoriesArr: string[] = [];
+
+    public keywordsArr: string[] = [];
+
+    public allTopicsArr: string[] = [];
 }

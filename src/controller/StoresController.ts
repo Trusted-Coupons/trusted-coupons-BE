@@ -29,7 +29,7 @@ export class StoresController {
   ): Promise<object[] | string> {
     // Destructure the query parameters from the request
     const {
-      query: { page, perPage, fL },
+      query: { page, perPage },
     } = _request;
     // Check if the language code is formatted correctly
     if (!isLangauageFormated(_request.params.ln)) {
@@ -54,30 +54,25 @@ export class StoresController {
     try {
       // Set the table path for the coupons repository
       this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
-      // Set the table path for the stores repository
+
+       // Calculate the limit and offset for pagination
+       const limit = Number(perPage) ;
+       const offset = (Number(page) - 1) * limit;
 
       // Retrieve the stores from the repository
-      const query = this.storesWebRepository
-        .createQueryBuilder()
-        .where('"countryAlpha2Code" = :country', { country });
-
-      if (!fL) {
-        // Calculate the limit and offset for pagination
-        const limit = Number(perPage) || 20;
-        const offset = (Number(page) - 1) * limit;
-        query.take(limit).offset(offset);
-      }else{
-        query.where('store ILIKE :prefix', { prefix: `${fL}%` });
-      }
-
-      const stores = await query.getMany();
+      const stores = await this.storesWebRepository
+      .createQueryBuilder()
+      .where('"countryAlpha2Code" = :country', { country })
+      .take(limit)
+      .offset(offset)
+      .getMany();
 
       stores.map((store) => {
         store.allCategoriesArr = convertToArray(store.altCategories);
         store.allTopicsArr = convertToArray(store.altTopics);
         store.keywordsArr = convertToArray(store.keywords);
       });
-
+      
       const storesWithCoupons = await this.getStoreCouponsAndMap(stores, table);
 
       return storesWithCoupons;
@@ -152,8 +147,8 @@ export class StoresController {
     this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
 
     const storeNames = stores.map((store) => store.store);
-
-    const coupons = await this.couponsWebRepository
+    if(stores.length) {
+      const coupons = await this.couponsWebRepository
       .createQueryBuilder()
       .where(`store IN (:...storeNames)`, { storeNames })
       .getMany();
@@ -168,6 +163,8 @@ export class StoresController {
     stores.forEach((store) => {
       store.coupons = couponsByStoreId[store.store] || [];
     });
+    }
+    
 
     return stores;
   }

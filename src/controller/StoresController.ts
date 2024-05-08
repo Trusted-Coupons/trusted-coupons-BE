@@ -55,24 +55,24 @@ export class StoresController {
       // Set the table path for the coupons repository
       this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
 
-       // Calculate the limit and offset for pagination
-       const limit = Number(perPage) ;
-       const offset = (Number(page) - 1) * limit;
+      // Calculate the limit and offset for pagination
+      const limit = Number(perPage);
+      const offset = (Number(page) - 1) * limit;
 
       // Retrieve the stores from the repository
       const stores = await this.storesWebRepository
-      .createQueryBuilder()
-      .where('"countryAlpha2Code" = :country', { country })
-      .take(limit)
-      .offset(offset)
-      .getMany();
+        .createQueryBuilder()
+        .where('"countryAlpha2Code" = :country', { country })
+        .take(limit)
+        .offset(offset)
+        .getMany();
 
       stores.map((store) => {
         store.allCategoriesArr = convertToArray(store.altCategories);
         store.allTopicsArr = convertToArray(store.altTopics);
         store.keywordsArr = convertToArray(store.keywords);
       });
-      
+
       const storesWithCoupons = await this.getStoreCouponsAndMap(stores, table);
 
       return storesWithCoupons;
@@ -147,24 +147,23 @@ export class StoresController {
     this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
 
     const storeNames = stores.map((store) => store.store);
-    if(stores.length) {
+    if (stores.length) {
       const coupons = await this.couponsWebRepository
-      .createQueryBuilder()
-      .where(`store IN (:...storeNames)`, { storeNames })
-      .getMany();
-    const couponsByStoreId = coupons.reduce((acc, coupon) => {
-      if (!acc[coupon.store]) {
-        acc[coupon.store] = [];
-      }
-      acc[coupon.store].push(coupon);
-      return acc;
-    }, {});
+        .createQueryBuilder()
+        .where(`store IN (:...storeNames)`, { storeNames })
+        .getMany();
+      const couponsByStoreId = coupons.reduce((acc, coupon) => {
+        if (!acc[coupon.store]) {
+          acc[coupon.store] = [];
+        }
+        acc[coupon.store].push(coupon);
+        return acc;
+      }, {});
 
-    stores.forEach((store) => {
-      store.coupons = couponsByStoreId[store.store] || [];
-    });
+      stores.forEach((store) => {
+        store.coupons = couponsByStoreId[store.store] || [];
+      });
     }
-    
 
     return stores;
   }
@@ -182,5 +181,54 @@ export class StoresController {
       return acc;
     }, {});
     return coupons;
+  }
+
+  async getStoresWithAlphabeticalKeys(
+    _request: Request,
+    _next: NextFunction,
+    _response: Response
+  ): Promise<object | string> {
+    if (!isLangauageFormated(_request.params.ln)) {
+      // Return an error message if the language code is invalid
+      return "invalid language code";
+    }
+
+    const { table, country, statusCode } = await this.getTableAndCountry(
+      _request.params.ln
+    );
+
+    // Return an error message if the language is not found
+    if (!country) {
+      return "Store language not found";
+    }
+
+    // Return an error message if the language is not found
+    if (table === "none" || statusCode !== 200) {
+      return "Coupon language not found";
+    }
+
+    try {
+      // Set the table path for the coupons repository
+      this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
+
+      const stores = await this.storesWebRepository
+        .createQueryBuilder()
+        .orderBy("store", "ASC")
+        .getMany();
+
+      const storesWithAlphabeticalKeys = stores.reduce((acc, store) => {
+        const firstLetter = store.store.charAt(0).toLowerCase();
+        if (!acc[firstLetter]) {
+          acc[firstLetter] = [];
+        }
+        acc[firstLetter].push(store);
+        return acc;
+      }, {});
+
+      return storesWithAlphabeticalKeys;
+    } catch (error) {
+      // Return an error message if an error occur
+      return "No stores available";
+    }
   }
 }

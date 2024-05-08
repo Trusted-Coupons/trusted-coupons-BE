@@ -32,4 +32,10 @@ export const Routes = [
         controller: StoresController,
         action: "one"
     },
+    {
+        method: "get",
+        route: "/:ln/stores-all",
+        controller: StoresController,
+        action: "getStoresWithAlphabeticalKeys"
+    },
 ]

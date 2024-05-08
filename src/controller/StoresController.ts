@@ -8,6 +8,8 @@ import {
 } from "../services/CouponLangaugeService";
 import { Coupon } from "../entity/Coupon";
 
+import { convertToArray } from "../services/Helpers";
+
 export class StoresController {
   private storesWebRepository = AppDataSource.getRepository(Store);
   private couponsWebRepository = AppDataSource.getRepository(Coupon);
@@ -27,26 +29,25 @@ export class StoresController {
   ): Promise<object[] | string> {
     // Destructure the query parameters from the request
     const {
-      query: { page, perPage },
+      query: { page, perPage, fL },
     } = _request;
-
     // Check if the language code is formatted correctly
     if (!isLangauageFormated(_request.params.ln)) {
       // Return an error message if the language code is invalid
       return "invalid language code";
     }
 
-    // Retrieve the table name and status code for the specified language
-    const { country } = extractLanguageAndCountry(_request.params.ln);
+    const { table, country, statusCode } = await this.getTableAndCountry(
+      _request.params.ln
+    );
 
     // Return an error message if the language is not found
     if (!country) {
       return "Store language not found";
     }
-    const { table, statusCode } = await getTableForLanguage(_request.params.ln);
 
     // Return an error message if the language is not found
-    if (statusCode !== 200) {
+    if (table === "none" || statusCode !== 200) {
       return "Coupon language not found";
     }
 
@@ -55,22 +56,26 @@ export class StoresController {
       this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
       // Set the table path for the stores repository
 
-      // Calculate the limit and offset for pagination
-      const limit = Number(perPage) || 20;
-      const offset = (Number(page) - 1) * limit;
-
       // Retrieve the stores from the repository
-      const stores = await this.storesWebRepository
+      const query = this.storesWebRepository
         .createQueryBuilder()
-        .where('"countryAlpha2Code" = :country', { country })
-        .take(limit)
-        .offset(offset)
-        .getMany();
+        .where('"countryAlpha2Code" = :country', { country });
+
+      if (!fL) {
+        // Calculate the limit and offset for pagination
+        const limit = Number(perPage) || 20;
+        const offset = (Number(page) - 1) * limit;
+        query.take(limit).offset(offset);
+      }else{
+        query.where('store ILIKE :prefix', { prefix: `${fL}%` });
+      }
+
+      const stores = await query.getMany();
 
       stores.map((store) => {
-        store.allCategoriesArr = this.convertToArray(store.altCategories);
-        store.allTopicsArr = this.convertToArray(store.altTopics);
-        store.keywordsArr = this.convertToArray(store.keywords);
+        store.allCategoriesArr = convertToArray(store.altCategories);
+        store.allTopicsArr = convertToArray(store.altTopics);
+        store.keywordsArr = convertToArray(store.keywords);
       });
 
       const storesWithCoupons = await this.getStoreCouponsAndMap(stores, table);
@@ -82,12 +87,10 @@ export class StoresController {
     }
   }
 
-  convertToArray(str: string): string[] {
-    return str
-      .replace(/^\[/g, "")
-      .replace(/\]$/g, "")
-      .split("', '")
-      .map((word) => word.replace(/^'|'$/g, ""));
+  async getTableAndCountry(ln: string) {
+    const { country } = extractLanguageAndCountry(ln);
+    const { table, statusCode } = await getTableForLanguage(ln);
+    return { table, country, statusCode };
   }
 
   /**
@@ -106,39 +109,35 @@ export class StoresController {
     // Extract the store ID and language code from the request parameters
     const id = Number(request.params.id);
 
-    // Find the store by its ID using the stores repository
-    const store = await this.storesWebRepository.findOneBy({ id });
-
-    // If the store is not found, return an error message
-    if (!store) {
-      return "Store not found";
-    }
     // Check if the language code is formatted correctly
     if (!isLangauageFormated(request.params.ln)) {
       // Return an error message if the language code is invalid
       return "invalid language code";
     }
 
-    // Retrieve the table name and status code for the specified language
-    const { country } = extractLanguageAndCountry(request.params.ln);
+    const { table, country, statusCode } = await this.getTableAndCountry(
+      request.params.ln
+    );
 
     // Return an error message if the language is not found
     if (!country) {
       return "Store language not found";
     }
-    const { table, statusCode } = await getTableForLanguage(request.params.ln);
 
     // Return an error message if the language is not found
-    if (statusCode !== 200) {
-      return "Coupon language not found";
+    if (table === "none" || statusCode !== 200) {
+      return " language not found";
     }
 
+    // Find the store by its ID using the stores repository
+    const store = await this.storesWebRepository.findOneBy({ id });
+    if (!store) return "No store found wioth ID: " + id;
     try {
       // Set the table path for the coupons repository
       this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
-      store.allCategoriesArr = this.convertToArray(store.altCategories);
-      store.allTopicsArr = this.convertToArray(store.altTopics);
-      store.keywordsArr = this.convertToArray(store.keywords);
+      store.allCategoriesArr = convertToArray(store.altCategories);
+      store.allTopicsArr = convertToArray(store.altTopics);
+      store.keywordsArr = convertToArray(store.keywords);
 
       store.coupons = await this.getSingleStoreCoupons(store.store);
       // Return the store object

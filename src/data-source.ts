@@ -3,6 +3,7 @@ import { DataSource } from "typeorm"
 import { Coupon } from "./entity/Coupon" 
 import { CountryLanguage } from "./entity/CountryLanguage"
 import { Store} from "./entity/Store"
+import { Category } from "./entity/Category"
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -16,7 +17,8 @@ export const AppDataSource = new DataSource({
     entities: [
         Coupon,
         CountryLanguage,
-        Store
+        Store,
+        Category
     ],
     migrations: [],
     migrationsRun: false,

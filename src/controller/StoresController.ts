@@ -91,6 +91,54 @@ export class StoresController {
   /**
    * Retrieve a specific store by its ID for a given language.
    *
+  async getStoresWithAlphabeticalKeys(
+    _request: Request,
+    _next: NextFunction,
+    _response: Response
+  ): Promise<object | string> {
+    if (!isLangauageFormated(_request.params.ln)) {
+      // Return an error message if the language code is invalid
+      return "invalid language code";
+    }
+
+    const { table, country, statusCode } = await this.getTableAndCountry(
+      _request.params.ln
+    );
+
+    // Return an error message if the language is not found
+    if (!country) {
+      return "Store language not found";
+    }
+
+    // Return an error message if the language is not found
+    if (table === "none" || statusCode !== 200) {
+      return "Coupon language not found";
+    }
+
+    try {
+      // Set the table path for the coupons repository
+      this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
+
+      const stores = await this.storesWebRepository
+        .createQueryBuilder()
+        .orderBy("store", "ASC")
+        .getMany();
+
+      const storesWithAlphabeticalKeys = stores.reduce((acc, store) => {
+        const firstLetter = store.store.charAt(0).toLowerCase();
+        if (!acc[firstLetter]) {
+          acc[firstLetter] = [];
+        }
+        acc[firstLetter].push(store);
+        return acc;
+      }, {});
+
+      return storesWithAlphabeticalKeys;
+    } catch (error) {
+      // Return an error message if an error occur
+      return "No stores available";
+    }
+  }
    * @param {Request} request - The request object.
    * @param {Response} _response - The response object.
    * @param {NextFunction} _next - The next function.

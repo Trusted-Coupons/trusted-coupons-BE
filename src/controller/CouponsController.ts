@@ -52,8 +52,8 @@ export class CouponsController {
         if(store){
           query.where({ store })
         }
-
-        const coupons = await query.getMany();
+      
+      const coupons = await query.getMany();
 
       // Map the coupons with the table name
       const mappedCoupons = coupons.map(coupon => ({

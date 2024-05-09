@@ -1,6 +1,6 @@
 import { CouponsController } from "./controller/CouponsController"
 import { StoresController } from "./controller/StoresController"
-
+import { CategoriesController } from "./controller/CategoriesController"
 export const Routes = [
     {
         method: "get",
@@ -37,5 +37,11 @@ export const Routes = [
         route: "/:ln/stores-all",
         controller: StoresController,
         action: "getStoresWithAlphabeticalKeys"
+    },
+    {
+        method: "get",
+        route: "/:ln/categories-all",
+        controller: CategoriesController,
+        action: "getCategoriesWithAlphabeticalKeys"
     },
 ]

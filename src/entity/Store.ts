@@ -1,5 +1,16 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 import { Coupon } from "./Coupon";
+import { StoreMd } from "./StoreMd";
+
+export type StoreMetadata = {
+    store: string,
+    deal: string,
+    current_month: string,
+    current_year: string,
+    store_category: string,
+    country: string,
+    my_website: string
+}
 
 @Entity('stores_info')
 export class Store {
@@ -64,4 +75,6 @@ export class Store {
     public keywordsArr: string[] = [];
 
     public allTopicsArr: string[] = [];
+
+    public storeMetadata: StoreMd[]
 }

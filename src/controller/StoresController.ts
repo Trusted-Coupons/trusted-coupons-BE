@@ -9,7 +9,8 @@ import {
 import { Coupon } from "../entity/Coupon";
 
 import { convertToArray } from "../services/Helpers";
-
+import { StoreMd } from "../entity/StoreMd";
+import { fillMetadatVariables } from "../services/StoreService";
 export class StoresController {
   private storesWebRepository = AppDataSource.getRepository(Store);
   private couponsWebRepository = AppDataSource.getRepository(Coupon);
@@ -84,8 +85,8 @@ export class StoresController {
 
   async getTableAndCountry(ln: string) {
     const { country } = extractLanguageAndCountry(ln);
-    const { table, statusCode } = await getTableForLanguage(ln);
-    return { table, country, statusCode };
+    const { table, statusCode, langauage,fullCountryName } = await getTableForLanguage(ln);
+    return { table, country, statusCode, langauage, fullCountryName };
   }
 
   /**
@@ -158,10 +159,9 @@ export class StoresController {
       return "invalid language code";
     }
 
-    const { table, country, statusCode } = await this.getTableAndCountry(
+    const { table, country, statusCode, langauage, fullCountryName } = await this.getTableAndCountry(
       request.params.ln
     );
-
     // Return an error message if the language is not found
     if (!country) {
       return "Store language not found";
@@ -174,6 +174,7 @@ export class StoresController {
 
     // Find the store by its ID using the stores repository
     const store = await this.storesWebRepository.findOneBy({ id });
+   
     if (!store) return "No store found wioth ID: " + id;
     try {
       // Set the table path for the coupons repository
@@ -183,13 +184,23 @@ export class StoresController {
       store.keywordsArr = convertToArray(store.keywords);
 
       store.coupons = await this.getSingleStoreCoupons(store.store);
-      // Return the store object
+      const metadata = await this.getStoreMetadata(langauage,country)
+       store.storeMetadata = fillMetadatVariables(metadata, store, fullCountryName)
+      
       return store;
     } catch (error) {
+      console.log(error)
       // Return an error message if an error occur
       return "No stores available";
     }
   }
+
+  async getStoreMetadata(langauage:string, country:string) {
+    const mdr = AppDataSource.getRepository(StoreMd);
+    return await mdr.findBy({ language: langauage, country: country });
+    
+  }
+
   async getStoreCouponsAndMap(stores: Store[], table: string) {
     // Set the table path for the coupons repository
     this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
@@ -212,6 +223,8 @@ export class StoresController {
         store.coupons = couponsByStoreId[store.store] || [];
       });
     }
+
+    
 
     return stores;
   }
@@ -279,4 +292,6 @@ export class StoresController {
       return "No stores available";
     }
   }
+
+
 }

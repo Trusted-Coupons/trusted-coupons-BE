@@ -3,7 +3,9 @@ import { CountryLanguage } from "../entity/CountryLanguage";
 
 type LanguageTableResponse = {
     table: string,
-    statusCode:number
+    statusCode:number,
+    langauage:string,
+    fullCountryName?:string
 }
 
 export const getTableForLanguage = async (languageCode: string): Promise<LanguageTableResponse> => {
@@ -15,8 +17,10 @@ export const getTableForLanguage = async (languageCode: string): Promise<Languag
     ? `${languageData.Alpha_2.toLowerCase()}_${languageData.Language1.toLowerCase()}`
     : 'none';
   const statusCode = languageData ? 200 : 404;
+  const langauage = languageData ? languageData.Language1 : 'none';
+  const fullCountryName = languageData ? languageData.Country : 'none';
 
-  return { table, statusCode };
+  return { table, statusCode,langauage, fullCountryName };
 }
 
 export const isLangauageFormated = (ln:string): boolean => {

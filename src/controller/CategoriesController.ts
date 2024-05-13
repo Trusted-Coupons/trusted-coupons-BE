@@ -17,7 +17,13 @@ export class CategoriesController {
     return { table, country, statusCode };
   }
 
-  
+  async all(_request: Request, _next: NextFunction, _response: Response) {
+    return await this.categoriesRepsitory
+    .createQueryBuilder()
+    .orderBy("category", "ASC")
+    .getMany();
+
+  }
 
   async getCategoriesWithAlphabeticalKeys(
     _request: Request,
@@ -44,8 +50,6 @@ export class CategoriesController {
     }
 
     try {
-     
-
       const stores = await this.categoriesRepsitory
         .createQueryBuilder()
         .orderBy("category", "ASC")

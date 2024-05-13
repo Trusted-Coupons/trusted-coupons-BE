@@ -44,4 +44,10 @@ export const Routes = [
         controller: CategoriesController,
         action: "getCategoriesWithAlphabeticalKeys"
     },
+    {
+        method: "get",
+        route: "/categories",
+        controller: CategoriesController,
+        action: "all"
+    },
 ]

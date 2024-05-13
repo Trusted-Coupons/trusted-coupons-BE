@@ -77,4 +77,7 @@ export class Store {
     public allTopicsArr: string[] = [];
 
     public storeMetadata: StoreMd[]
+
+    public storeCouponsLength: number
+
 }

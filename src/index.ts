@@ -4,8 +4,9 @@ import { Request, Response } from "express"
 import { AppDataSource } from "./data-source"
 import { Routes } from "./routes"
 
-
 AppDataSource.initialize().then(async () => {
+// Create a Redis client
+
 
     // create express app
     const app = express()

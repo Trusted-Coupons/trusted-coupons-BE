@@ -161,12 +161,12 @@ export class CouponsController {
 
       const categoryId = request.params.categoryId;
       const category = await this.categoriesRepsitory.findOneBy({ id: Number(categoryId) });
-      console.log(category)
+     
 
       // Retrieve the coupons from the repository
       const query = this.couponsWebRepository
         .createQueryBuilder('coupon')
-        .where("coupon.categories LIKE :category", { category: 'Games' })
+        .where("coupon.categories like :category", {category: `%${category?.category}%`})
         .take(limit)
         .offset(offset)
       

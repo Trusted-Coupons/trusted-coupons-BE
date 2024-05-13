@@ -46,7 +46,7 @@ export const Routes = [
     },
     {
         method: "get",
-        route: "/categories",
+        route: "/:ln/categories",
         controller: CategoriesController,
         action: "all"
     },

@@ -278,8 +278,12 @@ export class StoresController {
         .orderBy("store", "ASC")
         .select(['store.id', 'store.store', 'store.description','store.icon','store.keywords']) 
         .getMany();
-     
-      const storesWithAlphabeticalKeys = stores.reduce((acc, store) => {
+      stores.map((store) => {
+          store.keywordsArr = convertToArray(store.keywords);
+        });
+      const storesWithCoupons = await this.getStoreCouponsAndMap(stores, table);
+
+      const storesWithAlphabeticalKeys = storesWithCoupons.reduce((acc, store) => {
         const firstLetter = store.store.charAt(0).toLowerCase();
         if (!acc[firstLetter]) {
           acc[firstLetter] = [];
@@ -296,7 +300,9 @@ export class StoresController {
           result[letter] = storesWithAlphabeticalKeys[letter]
         }
       }
-
+    
+ 
+ 
       return result;
     } catch (error) {
       // Return an error message if an error occur

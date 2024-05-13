@@ -54,8 +54,8 @@ export class Coupon {
     @Column()
     merchant_home_page: string;
 
-    @Column()
-    categories: string;
+    @Column('text', { array: true, nullable: true })
+    categories: string[]; 
 
     @Column()
     standard_categories: string;

@@ -16,7 +16,7 @@ export const Routes = [
     },
     {
         method: "post",
-        route: "/:ln_formated/coupon/:id",
+        route: "/coupon/rate",
         controller: CouponsController,
         action: "clicked"
     },
@@ -50,4 +50,10 @@ export const Routes = [
         controller: CategoriesController,
         action: "all"
     },
+    {
+        method: "get",
+        route: "/:ln/coupons/categories/:categoryId",
+        controller: CouponsController,
+        action: "couponsByCategory"
+    }
 ]

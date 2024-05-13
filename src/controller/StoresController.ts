@@ -279,7 +279,4 @@ export class StoresController {
       return "No stores available";
     }
   }
-  
-
-
 }

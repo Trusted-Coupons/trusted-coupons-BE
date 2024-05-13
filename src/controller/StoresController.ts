@@ -11,12 +11,12 @@ import { Coupon } from "../entity/Coupon";
 import { convertToArray } from "../services/Helpers";
 import { StoreMd } from "../entity/StoreMd";
 import { fillMetadatVariables } from "../services/StoreService";
-import { Redis } from "ioredis"
+// import { Redis } from "ioredis"
 
 export class StoresController {
   private storesWebRepository = AppDataSource.getRepository(Store);
   private couponsWebRepository = AppDataSource.getRepository(Coupon);
-  client:Redis = new Redis();
+  // client:Redis = new Redis();
   /**
    * Retrieve all stores for a specific language.
    *
@@ -75,13 +75,10 @@ export class StoresController {
         .offset(offset)
         .getMany();
 
-      stores.map((store) => {
-        store.keywordsArr = convertToArray(store.keywords);
-      });
-
       stores.forEach(async (store) => {
-        const coupons = await this.checkRedisCacheForStoreCoupons(`${country}_store_${store.id}_coupons`,store.store,table);
-        store.coupons = coupons;
+        // const coupons = await this.checkRedisCacheForStoreCoupons(`${country}_store_${store.id}_coupons`,store.store,table);
+        store.keywordsArr = convertToArray(store.keywords);
+        store.coupons = await this.getStoreCouponsAndMap(store.store,table);;
       });
 
       return stores;
@@ -90,20 +87,20 @@ export class StoresController {
       return "No stores available";
     }
   }
-  checkRedisCacheForStoreCoupons = async (key: string,storeName:string,table:string) => {
-    const cachedValue = await this.client.get(key);
+//   checkRedisCacheForStoreCoupons = async (key: string,storeName:string,table:string) => {
+//     const cachedValue = await this.client.get(key);
 
-    if (cachedValue) {
-      console.log("Cache hit");
-        return JSON.parse(cachedValue);
-    } else {
-        const newValue = await this.getStoreCouponsAndMap(storeName,table); // Implement the function to generate the value if not cached
+//     if (cachedValue) {
+     
+//         return JSON.parse(cachedValue);
+//     } else {
+//         const newValue = await this.getStoreCouponsAndMap(storeName,table); // Implement the function to generate the value if not cached
 
-        await this.client.set(key, JSON.stringify(newValue), 'EX', 3600);
+//         await this.client.set(key, JSON.stringify(newValue), 'EX', 3600);
         
-        return newValue;
-    }
-}
+//         return newValue;
+//     }
+// }
   async getTableAndCountry(ln: string) {
     const { country } = extractLanguageAndCountry(ln);
     const { table, statusCode, langauage,fullCountryName } = await getTableForLanguage(ln);
@@ -148,25 +145,30 @@ export class StoresController {
       store.keywordsArr = convertToArray(store.keywords);
 
      
-      let storeCoupons = await this.client.get(`store_${store.id}_coupons`, (err, result) => {
-      if (err) {
-        console.error(err);
-      } else {
-        console.log('Single store from cache'); // Prints "value"
-      }
-      return result;
-    });
+    //   let storeCoupons = await this.client.get(`store_${store.id}_coupons`, (err, result) => {
+    //   if (err) {
+    //     console.error(err);
+    //   } else {
+    //     console.log('Single store from cache'); // Prints "value"
+    //   }
+    //   return result;
+    // });
 
-     if(storeCoupons){
-      let coupons =  JSON.parse(storeCoupons);
-      store.storeCouponsLength = coupons.length;
-      store.coupons = JSON.parse(storeCoupons)
-     }else{
-      let coupons = await this.getSingleStoreCoupons(store.store);
-      this.client.set(`store_${store.id}_coupons`,JSON.stringify(coupons), 'EX',3600);
-      store.storeCouponsLength = coupons.length;
-      store.coupons = coupons;
-     }
+    //  if(storeCoupons){
+    //   let coupons =  JSON.parse(storeCoupons);
+    //   store.storeCouponsLength = coupons.length;
+    //   store.coupons = JSON.parse(storeCoupons)
+    //  }else{
+    //   let coupons = await this.getSingleStoreCoupons(store.store);
+    //   this.client.set(`store_${store.id}_coupons`,JSON.stringify(coupons), 'EX',3600);
+    //   store.storeCouponsLength = coupons.length;
+    //   store.coupons = coupons;
+    //  }
+
+     let coupons = await this.getSingleStoreCoupons(store.store);
+     store.storeCouponsLength = coupons.length;
+     store.coupons = coupons;
+
       const metadata = await this.getStoreMetadata(langauage,country)
       store.storeMetadata = fillMetadatVariables(metadata, store, fullCountryName)
       
@@ -187,23 +189,18 @@ export class StoresController {
   async getStoreCouponsAndMap(storeName:string, table: string) {
     // Set the table path for the coupons repository
     this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
-
-   
-    let couponsByStoreId = {};
-    if (storeName) {
       const coupons = await this.couponsWebRepository
         .createQueryBuilder()
         .where(`store = :storeName`, { storeName })
         .getMany();
-       couponsByStoreId = coupons.reduce((acc, coupon) => {
-        if (!acc[coupon.store]) {
-          acc[coupon.store] = [];
-        }
-        acc[coupon.store].push(coupon);
-        return acc;
-      }, {});
-    }
-    return couponsByStoreId || [];
+      //  const couponsByStoreId = coupons.reduce((acc, coupon) => {
+      //   if (!acc[coupon.store]) {
+      //     acc[coupon.store] = [];
+      //   }
+      //   acc[coupon.store].push(coupon);
+      //   return acc;
+      // }, {});
+    return coupons || [];
   }
 
   async getSingleStoreCoupons(storeName: string) {

@@ -69,19 +69,21 @@ export class StoresController {
       // Retrieve the stores from the repository
       const stores = await this.storesWebRepository
         .createQueryBuilder('store')
-        .where('"countryAlpha2Code" = :country', { country })
+        .where("store.countries like :country", {country: `%${country}%`})
         .select(['store.id', 'store.store', 'store.description','store.icon','store.keywords']) 
         .take(limit)
         .offset(offset)
         .getMany();
 
-      stores.forEach(async (store) => {
-        // const coupons = await this.checkRedisCacheForStoreCoupons(`${country}_store_${store.id}_coupons`,store.store,table);
-        store.keywordsArr = convertToArray(store.keywords);
-        store.coupons = await this.getStoreCouponsAndMap(store.store,table);;
-      });
 
-      return stores;
+
+      stores.map((store) => {
+          store.keywordsArr = convertToArray(store.keywords);
+        });
+      const storesWithCoupons = await this.getStoreCouponsAndMap(stores, table);
+   
+   
+      return storesWithCoupons;
     } catch (error) {
       // Return an error message if an error occur
       return "No stores available";
@@ -185,23 +187,48 @@ export class StoresController {
     return await mdr.findBy({ language: langauage, country: country });
     
   }
-
-  async getStoreCouponsAndMap(storeName:string, table: string) {
+  async getStoreCouponsAndMap(stores: Store[], table: string) {
     // Set the table path for the coupons repository
     this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
-      const coupons = await this.couponsWebRepository
-        .createQueryBuilder()
-        .where(`store = :storeName`, { storeName })
-        .getMany();
-      //  const couponsByStoreId = coupons.reduce((acc, coupon) => {
-      //   if (!acc[coupon.store]) {
-      //     acc[coupon.store] = [];
-      //   }
-      //   acc[coupon.store].push(coupon);
-      //   return acc;
-      // }, {});
-    return coupons || [];
+
+    const storeNames = stores.map((store) => store.store);
+
+    const coupons = await this.couponsWebRepository
+      .createQueryBuilder()
+      .where(`store IN (:...storeNames)`, { storeNames })
+      .getMany();
+    const couponsByStoreId = coupons.reduce((acc, coupon) => {
+      if (!acc[coupon.store]) {
+        acc[coupon.store] = [];
+      }
+      acc[coupon.store].push(coupon);
+      return acc;
+    }, {});
+
+    stores.forEach((store) => {
+      store.coupons = couponsByStoreId[store.store] || [];
+      store.storeCouponsLength = store.coupons.length;
+    });
+
+    return stores;
   }
+  // async getStoreCouponsAndMap(storeName:string, table: string) {
+  //   // Set the table path for the coupons repository
+  //   this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
+  //     const coupons = await this.couponsWebRepository
+  //       .createQueryBuilder()
+  //       .where(`store = :storeName`, { storeName })
+  //       .getMany();
+  //     //  const couponsByStoreId = coupons.reduce((acc, coupon) => {
+  //     //   if (!acc[coupon.store]) {
+  //     //     acc[coupon.store] = [];
+  //     //   }
+  //     //   acc[coupon.store].push(coupon);
+  //     //   return acc;
+  //     // }, {});
+  //   console.log(coupons)
+  //   return coupons ;
+  // }
 
   async getSingleStoreCoupons(storeName: string) {
     const coupons = await this.couponsWebRepository

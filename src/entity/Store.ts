@@ -68,7 +68,7 @@ export class Store {
     @Column({ type: "varchar", length: 255 })
     country_language: string;
 
-    public coupons = new Array<Coupon>() || [];
+    public coupons = new Array<Coupon>();
 
     public allCategoriesArr: string[] = [];
 

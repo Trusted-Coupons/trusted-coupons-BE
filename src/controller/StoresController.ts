@@ -71,7 +71,7 @@ export class StoresController {
         .createQueryBuilder('store')
         .where("store.countries like :country", {country: `%${country}%`})
         .select(['store.id', 'store.store', 'store.description','store.icon','store.keywords']) 
-        .take(limit)
+        .limit(limit)
         .offset(offset)
         .getMany();
 

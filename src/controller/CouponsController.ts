@@ -37,7 +37,7 @@ export class CouponsController {
     if (statusCode !== 200) {
       return "Coupon language not found";
     }
-
+    
     try {
       // Set the table path for the coupons repository
       this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
@@ -45,11 +45,11 @@ export class CouponsController {
       // Calculate the limit and offset for pagination
       const limit = Number(perPage) || 20;
       const offset = (Number(page) - 1) * limit;
-
+   
       // Retrieve the coupons from the repository
       const query = this.couponsWebRepository
         .createQueryBuilder()
-        .take(limit)
+        .limit(limit)
         .offset(offset)
 
         if(store){
@@ -57,7 +57,7 @@ export class CouponsController {
         }
       
       const coupons = await query.getMany();
-
+    
       // Map the coupons with the table name
       const mappedCoupons = coupons.map(coupon => ({
         ...coupon,
@@ -167,7 +167,7 @@ export class CouponsController {
       const query = this.couponsWebRepository
         .createQueryBuilder('coupon')
         .where("coupon.categories like :category", {category: `%${category?.category}%`})
-        .take(limit)
+        .limit(limit)
         .offset(offset)
       
       const coupons = await query.getMany();

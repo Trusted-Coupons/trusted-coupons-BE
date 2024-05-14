@@ -64,7 +64,7 @@ export class CouponsController {
       const mappedCoupons = coupons[0].map(coupon => ({
         ...coupon,
         table_name: table,
-        totalCouponCount: coupons[1] ? coupons[1] : 0
+        total_coupons_count: coupons[1] ? coupons[1] : 0
       }));
     
   

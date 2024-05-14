@@ -18,7 +18,7 @@ export class CouponsController {
    * @param {Response} _response - The response object.
    * @return {Promise<Object[] | string>} An array of mapped coupons or an error message.
    */
-  async all(_request: Request, _next: NextFunction, _response: Response): Promise<object[] | string> {
+  async all(_request: Request, _next: NextFunction, _response: Response): Promise<object[]  | string > {
     // Destructure the query parameters from the request
     const {
       query: { page, perPage,store },
@@ -46,24 +46,28 @@ export class CouponsController {
       const limit = Number(perPage) || 20;
       const offset = (Number(page) - 1) * limit;
    
+
+
       // Retrieve the coupons from the repository
       const query = this.couponsWebRepository
         .createQueryBuilder()
         .limit(limit)
         .offset(offset)
 
-        if(store){
+        if(store){ 
           query.where({ store })
         }
       
-      const coupons = await query.getMany();
-    
-      // Map the coupons with the table name
-      const mappedCoupons = coupons.map(coupon => ({
+      const coupons = await query.getManyAndCount();
+      
+ 
+      const mappedCoupons = coupons[0].map(coupon => ({
         ...coupon,
         table_name: table
       }));
-
+    
+    mappedCoupons['totalCoupons'] = coupons[1];
+    
       // Return the mapped coupons
       return mappedCoupons;
     } catch (error) {

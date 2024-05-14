@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, Index } from "typeorm";
 
 @Entity("")
 export class Coupon {
@@ -47,14 +47,15 @@ export class Coupon {
     @Column()
     type: string;
 
+    @Index()
     @Column()
     store: string;
 
     @Column()
     merchant_home_page: string;
 
-    @Column()
-    categories: string;
+    @Column('text', { array: true, nullable: true })
+    categories: string[]; 
 
     @Column()
     standard_categories: string;
@@ -74,5 +75,7 @@ export class Coupon {
     @Column()
     rating: string;
 
+    
     public table_name: string;
 }
+

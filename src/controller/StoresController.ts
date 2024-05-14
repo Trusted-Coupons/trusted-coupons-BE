@@ -42,7 +42,7 @@ export class StoresController {
       return "invalid language code";
     }
 
-    const { table, country, statusCode } = await this.getTableAndCountry(
+    const { table, country, statusCode,langauage} = await this.getTableAndCountry(
       _request.params.ln
     );
 
@@ -69,8 +69,8 @@ export class StoresController {
       // Retrieve the stores from the repository
       const stores = await this.storesWebRepository
         .createQueryBuilder('store')
-        .where("store.countries like :country", {country: `%${country}%`})
-        .select(['store.id', 'store.store', 'store.description','store.icon','store.keywords']) 
+        .where("store.country_language like :country", {country: `%${country}_${langauage}%`})
+        .select(['store.id', 'store.store', 'store.description','store.keywords']) 
         .limit(limit)
         .offset(offset)
         .getMany();
@@ -166,7 +166,8 @@ export class StoresController {
     //   store.storeCouponsLength = coupons.length;
     //   store.coupons = coupons;
     //  }
-
+     store.description = store[`${country}_${langauage}`] || store.description;
+    
      let coupons = await this.getSingleStoreCoupons(store.store);
      store.storeCouponsLength = coupons.length;
      store.coupons = coupons;

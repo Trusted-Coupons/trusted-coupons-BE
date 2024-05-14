@@ -256,7 +256,7 @@ export class StoresController {
       return "invalid language code";
     }
 
-    const { table, country, statusCode } = await this.getTableAndCountry(
+    const { table, country, statusCode, langauage } = await this.getTableAndCountry(
       _request.params.ln
     );
 
@@ -278,6 +278,7 @@ export class StoresController {
         .createQueryBuilder('store')
         .orderBy("store", "ASC")
         .select(['store.id', 'store.store', 'store.description','store.keywords']) 
+        .where("store.country_language like :country", {country: `%${country}_${langauage}%`})
         .getMany();
       stores.map((store) => {
           store.keywordsArr = convertToArray(store.keywords);

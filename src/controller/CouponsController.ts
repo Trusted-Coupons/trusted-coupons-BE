@@ -37,7 +37,7 @@ export class CouponsController {
     if (statusCode !== 200) {
       return "Coupon language not found";
     }
-    
+
     try {
       // Set the table path for the coupons repository
       this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
@@ -45,7 +45,7 @@ export class CouponsController {
       // Calculate the limit and offset for pagination
       const limit = Number(perPage) || 20;
       const offset = (Number(page) - 1) * limit;
-   
+
 
 
       // Retrieve the coupons from the repository
@@ -54,20 +54,20 @@ export class CouponsController {
         .limit(limit)
         .offset(offset)
 
-        if(store){ 
+        if(store){
           query.where({ store })
         }
-      
+
       const coupons = await query.getManyAndCount();
-      
- 
+
+
       const mappedCoupons = coupons[0].map(coupon => ({
         ...coupon,
         table_name: table,
         total_coupons_count: coupons[1] ? coupons[1] : 0
       }));
-    
-  
+
+
       // Return the mapped coupons
       return mappedCoupons;
     } catch (error) {
@@ -110,7 +110,7 @@ export class CouponsController {
   async clicked(request: Request, _response: Response, _next: NextFunction): Promise<object | string> {
     // Extract the coupon ID and language code from the request parameters
     const id = request.body.coupon_id;
-    const coupons_table = request.params.coupons_table;
+    const coupons_table = request.body.coupons_table;
 
     // Set the table path for the coupons repository
     this.couponsWebRepository.metadata.tablePath = `coupons_website_${coupons_table}`;
@@ -165,7 +165,7 @@ export class CouponsController {
 
       const categoryId = request.params.categoryId;
       const category = await this.categoriesRepsitory.findOneBy({ id: Number(categoryId) });
-     
+
 
       // Retrieve the coupons from the repository
       const query = this.couponsWebRepository
@@ -173,7 +173,7 @@ export class CouponsController {
         .where("coupon.categories like :category", {category: `%${category?.category}%`})
         .limit(limit)
         .offset(offset)
-      
+
       const coupons = await query.getMany();
 
       // Map the coupons with the table name

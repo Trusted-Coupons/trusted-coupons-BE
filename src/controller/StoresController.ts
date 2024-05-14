@@ -277,7 +277,7 @@ export class StoresController {
       const stores = await this.storesWebRepository
         .createQueryBuilder('store')
         .orderBy("store", "ASC")
-        .select(['store.id', 'store.store', 'store.description','store.icon','store.keywords']) 
+        .select(['store.id', 'store.store', 'store.description','store.keywords']) 
         .getMany();
       stores.map((store) => {
           store.keywordsArr = convertToArray(store.keywords);

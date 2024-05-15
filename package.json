@@ -26,6 +26,7 @@
    },
    "scripts": {
       "start": "nodemon --exec ts-node src/index.ts",
-      "typeorm": "typeorm-ts-node-commonjs"
+      "typeorm": "typeorm-ts-node-commonjs",
+      "build:digitalocean": "npm install --production=false && npm run build && npm ci"
    }
 }

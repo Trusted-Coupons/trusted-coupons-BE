@@ -28,7 +28,7 @@ AppDataSource.initialize().then(async () => {
     // ...
 
     // start express server
-    app.listen(3060)
+    app.listen(8080)
 
 
 

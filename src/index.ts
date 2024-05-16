@@ -3,13 +3,16 @@ import * as bodyParser from "body-parser"
 import { Request, Response } from "express"
 import { AppDataSource } from "./data-source"
 import { Routes } from "./routes"
+const cors = require("cors");
 
 AppDataSource.initialize().then(async () => {
-// Create a Redis client
+    // Create a Redis client
 
 
     // create express app
     const app = express()
+    app.use(cors());
+
     app.use(bodyParser.json())
     // register express routes from defined application routes
     Routes.forEach(route => {
@@ -24,12 +27,7 @@ AppDataSource.initialize().then(async () => {
         })
     })
 
-    // setup express app here
-    // ...
-
     // start express server
     app.listen(3010)
-
-
 
 }).catch(error => console.log(error))

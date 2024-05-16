@@ -86,6 +86,7 @@ export class CouponsController {
    * @return {Promise<Object | string>} The coupon object if found, or an error message.
    */
   async one(request: Request, _response: Response, _next: NextFunction): Promise<object | string> {
+   
     // Extract the coupon ID and language code from the request parameters
     const id = request.params.id;
     const ln_formated = request.params.ln_formated;
@@ -108,10 +109,10 @@ export class CouponsController {
     return coupon;
   }
   async clicked(request: Request, _response: Response, _next: NextFunction): Promise<object | string> {
+    
     // Extract the coupon ID and language code from the request parameters
     const id = request.body.coupon_id;
-    const coupons_table = request.params.coupons_table;
-
+    const coupons_table = request.body.coupons_table;
     // Set the table path for the coupons repository
     this.couponsWebRepository.metadata.tablePath = `coupons_website_${coupons_table}`;
 
@@ -185,7 +186,6 @@ export class CouponsController {
       // Return the mapped coupons
       return mappedCoupons;
     } catch (error) {
-      console.log(error)
       // Return an error message if an error occurs
       return "Coupon language not found";
     }

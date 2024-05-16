@@ -32,3 +32,12 @@ export const extractLanguageAndCountry = (languageCode: string): { language: str
     const [language, country] = languageCode.split("-") as [string, string];
     return { language, country };
 }
+
+export const getLanguageUsedInCountry = async (languageCode:string) => {
+  const { language } = extractLanguageAndCountry(languageCode);
+ 
+  const repository = AppDataSource.getRepository(CountryLanguage);
+  const languageData = await repository.findOne({ where: { Alpha_2_Lang: language }});
+
+  return languageData?.Language1;
+}

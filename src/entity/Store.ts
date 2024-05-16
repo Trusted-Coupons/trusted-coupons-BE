@@ -52,272 +52,357 @@ export class Store {
     ourCategories: string;
 
     @Column({ type: "varchar", length: 255 })
-    country_language: string;
+    country_language: string;    
+    
+    @Column({ type: "varchar", length: 255})
+    AU_English:string;
 
-    @Column({ type: "varchar", length: 255, name: 'AU_English' })
-    AU_English: string;
+    @Column({ type: "varchar", length: 255})
+    CA_English:string;
 
-    @Column({ type: "varchar", length: 255, name: 'BE_Dutch' })
-    BE_Dutch: string;
+    @Column({ type: "varchar", length: 255})
+    CA_French:string;
 
-    @Column({ type: "varchar", length: 255, name: 'BE_French' })
-    BE_French: string;
+    @Column({ type: "varchar", length: 255})
+    GB_English:string;
 
-    @Column({ type: "varchar", length: 255, name: 'BE_German' })
-    BE_German: string;
+    @Column({ type: "varchar", length: 255})
+    IN_English:string;
 
-    @Column({ type: "varchar", length: 255, name: 'BG_Bulgarian' })
-    BG_Bulgarian: string;
+    @Column({ type: "varchar", length: 255})
+    IN_Hindi:string;
 
-    @Column({ type: "varchar", length: 255, name: 'BH_Arabic' })
-    BH_Arabic: string;
+    @Column({ type: "varchar", length: 255})
+    PH_English:string;
 
-    @Column({ type: "varchar", length: 255, name: 'BO_Spanish' })
-    BO_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    PH_Filipino:string;
 
-    @Column({ type: "varchar", length: 255, name: 'BR_Portuguese' })
-    BR_Portuguese: string;
+    @Column({ type: "varchar", length: 255})
+    US_English:string;
 
-    @Column({ type: "varchar", length: 255, name: 'CA_English' })
-    CA_English: string;
+    @Column({ type: "varchar", length: 255})
+    US_Spanish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'CA_French' })
-    CA_French: string;
+    @Column({ type: "varchar", length: 255})
+    CZ_Czech:string;
 
-    @Column({ type: "varchar", length: 255, name: 'CL_Spanish' })
-    CL_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    CZ_Slovak:string;
 
-    @Column({ type: "varchar", length: 255, name: 'CN_Chinese' })
-    CN_Chinese: string;
+    @Column({ type: "varchar", length: 255})
+    DE_German:string;
 
-    @Column({ type: "varchar", length: 255, name: 'CO_Spanish' })
-    CO_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    SK_Slovak:string;
 
-    @Column({ type: "varchar", length: 255, name: 'CR_Spanish' })
-    CR_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    AT_German:string;
 
-    @Column({ type: "varchar", length: 255, name: 'CY_Greek' })
-    CY_Greek: string;
+    @Column({ type: "varchar", length: 255})
+    CH_German:string;
 
-    @Column({ type: "varchar", length: 255, name: 'CY_Turkish' })
-    CY_Turkish: string;
+    @Column({ type: "varchar", length: 255})
+    CH_French:string;
 
-    @Column({ type: "varchar", length: 255, name: 'CZ_Czech' })
-    CZ_Czech: string;
+    @Column({ type: "varchar", length: 255})
+    CH_Italian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'DE_German' })
-    DE_German: string;
+    @Column({ type: "varchar", length: 255})
+    GR_Greek:string;
 
-    @Column({ type: "varchar", length: 255, name: 'DK_Danish' })
-    DK_Danish: string;
+    @Column({ type: "varchar", length: 255})
+    NL_Dutch:string;
 
-    @Column({ type: "varchar", length: 255, name: 'DO_Spanish' })
-    DO_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    PL_Polish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'EC_Spanish' })
-    EC_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    FR_French:string;
 
-    @Column({ type: "varchar", length: 255, name: 'EE_Estonian' })
-    EE_Estonian: string;
+    @Column({ type: "varchar", length: 255})
+    IE_English:string;
 
-    @Column({ type: "varchar", length: 255, name: 'EG_Arabic' })
-    EG_Arabic: string;
+    @Column({ type: "varchar", length: 255})
+    IE_Irish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'ES_Spanish' })
-    ES_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    KR_Korean:string;
 
-    @Column({ type: "varchar", length: 255, name: 'FI_Finnish' })
-    FI_Finnish: string;
+    @Column({ type: "varchar", length: 255})
+    UA_Ukrainian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'FI_Swedish' })
-    FI_Swedish: string;
+    @Column({ type: "varchar", length: 255})
+    BE_Dutch:string;
 
-    @Column({ type: "varchar", length: 255, name: 'GE_Georgian' })
-    GE_Georgian: string;
+    @Column({ type: "varchar", length: 255})
+    BE_French:string;
 
-    @Column({ type: "varchar", length: 255, name: 'GT_Spanish' })
-    GT_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    BE_German:string;
 
-    @Column({ type: "varchar", length: 255, name: 'HN_Spanish' })
-    HN_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    AE_Arabic:string;
 
-    @Column({ type: "varchar", length: 255, name: 'HR_Croatian' })
-    HR_Croatian: string;
+    @Column({ type: "varchar", length: 255})
+    AL_Albanian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'HU_Hungarian' })
-    HU_Hungarian: string;
+    @Column({ type: "varchar", length: 255})
+    AM_Armenian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'ID_Indonesian' })
-    ID_Indonesian: string;
+    @Column({ type: "varchar", length: 255})
+    AR_Spanish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'IL_Hebrew' })
-    IL_Hebrew: string;
+    @Column({ type: "varchar", length: 255})
+    AZ_Azerbaijani:string;
 
-    @Column({ type: "varchar", length: 255, name: 'IS_Icelandic' })
-    IS_Icelandic: string;
+    @Column({ type: "varchar", length: 255})
+    BA_Serbian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'IT_Italian' })
-    IT_Italian: string;
+    @Column({ type: "varchar", length: 255})
+    BD_Bengali:string;
 
-    @Column({ type: "varchar", length: 255, name: 'JM_English' })
-    JM_English: string;
+    @Column({ type: "varchar", length: 255})
+    BG_Bulgarian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'JO_Arabic' })
-    JO_Arabic: string;
+    @Column({ type: "varchar", length: 255})
+    BH_Arabic:string;
 
-    @Column({ type: "varchar", length: 255, name: 'JP_Japanese' })
-    JP_Japanese: string;
+    @Column({ type: "varchar", length: 255})
+    BO_Spanish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'KW_Arabic' })
-    KW_Arabic: string;
+    @Column({ type: "varchar", length: 255})
+    BR_Portuguese:string;
 
-    @Column({ type: "varchar", length: 255, name: 'KZ_Kazakh' })
-    KZ_Kazakh: string;
+    @Column({ type: "varchar", length: 255})
+    CL_Spanish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'KZ_Russian' })
-    KZ_Russian: string;
+    @Column({ type: "varchar", length: 255})
+    CN_Chinese:string;
 
-    @Column({ type: "varchar", length: 255, name: 'LA_Lao' })
-    LA_Lao: string;
+    @Column({ type: "varchar", length: 255})
+    CO_Spanish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'LB_Arabic' })
-    LB_Arabic: string;
+    @Column({ type: "varchar", length: 255})
+    CR_Spanish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'LK_English' })
-    LK_English: string;
+    @Column({ type: "varchar", length: 255})
+    CY_Greek:string;
 
-    @Column({ type: "varchar", length: 255, name: 'LT_Lithuanian' })
-    LT_Lithuanian: string;
+    @Column({ type: "varchar", length: 255})
+    CY_Turkish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'LU_French' })
-    LU_French: string;
+    @Column({ type: "varchar", length: 255})
+    DK_Danish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'LU_German' })
-    LU_German: string;
+    @Column({ type: "varchar", length: 255})
+    DO_Spanish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'LU_Luxembourgish' })
-    LU_Luxembourgish: string;
+    @Column({ type: "varchar", length: 255})
+    EC_Spanish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'LV_Latvian' })
-    LV_Latvian: string;
+    @Column({ type: "varchar", length: 255})
+    EE_Estonian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'MA_Arabic' })
-    MA_Arabic: string;
+    @Column({ type: "varchar", length: 255})
+    EG_Arabic:string;
 
-    @Column({ type: "varchar", length: 255, name: 'MD_Romanian' })
-    MD_Romanian: string;
+    @Column({ type: "varchar", length: 255})
+    ES_Spanish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'ME_Serbian' })
-    ME_Serbian: string;
+    @Column({ type: "varchar", length: 255})
+    FI_Finnish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'MK_Macedonian' })
-    MK_Macedonia: string;
+    @Column({ type: "varchar", length: 255})
+    FI_Swedish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'MK_Albanian' })
-    MK_Albanian: string;
+    @Column({ type: "varchar", length: 255})
+    GE_Georgian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'MT_English' })
-    MT_English: string;
+    @Column({ type: "varchar", length: 255})
+    GT_Spanish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'MT_Maltese' })
-    MT_Maltese: string;
+    @Column({ type: "varchar", length: 255})
+    HN_Spanish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'MX_Spanish' })
-    MX_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    HR_Croatian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'MY_Malay' })
-    MY_Malay: string;
+    @Column({ type: "varchar", length: 255})
+    HU_Hungarian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'NG_English' })
-    NG_English: string;
+    @Column({ type: "varchar", length: 255})
+    ID_Indonesian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'NI_Spanish' })
-    NI_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    IL_Hebrew:string;
 
-    @Column({ type: "varchar", length: 255, name: 'NO_Norwegian' })
-    NO_Norwegian: string;
+    @Column({ type: "varchar", length: 255})
+    IS_Icelandic:string;
 
-    @Column({ type: "varchar", length: 255, name: 'NZ_English' })
-    NZ_English: string;
+    @Column({ type: "varchar", length: 255})
+    IT_Italian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'OM_Arabic' })
-    OM_Arabic: string;
+    @Column({ type: "varchar", length: 255})
+    JM_English:string;
 
-    @Column({ type: "varchar", length: 255, name: 'PA_Spanish' })
-    PA_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    JO_Arabic:string;
 
-    @Column({ type: "varchar", length: 255, name: 'PE_Spanish' })
-    PE_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    JP_Japanese:string;
 
-    @Column({ type: "varchar", length: 255, name: 'PK_English' })
-    PK_English: string;
+    @Column({ type: "varchar", length: 255})
+    KW_Arabic:string;
 
-    @Column({ type: "varchar", length: 255, name: 'PK_Urdu' })
-    PK_Urdu: string;
+    @Column({ type: "varchar", length: 255})
+    KZ_Kazakh:string;
 
-    @Column({ type: "varchar", length: 255, name: 'PT_Portuguese' })
-    PT_Portuguese: string;
+    @Column({ type: "varchar", length: 255})
+    KZ_Russian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'PY_Spanish' })
-    PY_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    LA_Lao:string;
 
-    @Column({ type: "varchar", length: 255, name: 'QA_Arabic' })
-    QA_Arabic: string;
+    @Column({ type: "varchar", length: 255})
+    LB_Arabic:string;
 
-    @Column({ type: "varchar", length: 255, name: 'RO_Romanian' })
-    RO_Romanian: string;
+    @Column({ type: "varchar", length: 255})
+    LK_English:string;
 
-    @Column({ type: "varchar", length: 255, name: 'RS_Serbian' })
-    RS_Serbian: string;
+    @Column({ type: "varchar", length: 255})
+    LT_Lithuanian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'RU_Russian' })
-    RU_Russian: string;
+    @Column({ type: "varchar", length: 255})
+    LU_French:string;
 
-    @Column({ type: "varchar", length: 255, name: 'SA_Arabic' })
-    SA_Arabic: string;
+    @Column({ type: "varchar", length: 255})
+    LU_German:string;
 
-    @Column({ type: "varchar", length: 255, name: 'SE_Swedish' })
-    SE_Swedish: string;
+    @Column({ type: "varchar", length: 255})
+    LU_Luxembourgish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'SG_English' })
-    SG_English: string;
+    @Column({ type: "varchar", length: 255})
+    LV_Latvian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'SG_Malay' })
-    SG_Malay: string;
+    @Column({ type: "varchar", length: 255})
+    MA_Arabic:string;
 
-    @Column({ type: "varchar", length: 255, name: 'SG_Tamil' })
-    SG_Tamil: string;
+    @Column({ type: "varchar", length: 255})
+    MD_Romanian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'SI_Slovenian' })
-    SI_Slovenian: string;
+    @Column({ type: "varchar", length: 255})
+    ME_Serbian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'SV_Spanish' })
-    SV_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    MK_Macedonian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'TH_Thai' })
-    TH_Thai: string;
+    @Column({ type: "varchar", length: 255})
+    MK_Albanian:string;
 
-    @Column({ type: "varchar", length: 255, name: 'TR_Turkish' })
-    TR_Turkish: string;
+    @Column({ type: "varchar", length: 255})
+    MT_English:string;
 
-    @Column({ type: "varchar", length: 255, name: 'TW_Chinese' })
-    TW_Chinese: string;
+    @Column({ type: "varchar", length: 255})
+    MT_Maltese:string;
 
-    @Column({ type: "varchar", length: 255, name: 'UY_Spanish' })
-    UY_Spanish: string;
+    @Column({ type: "varchar", length: 255})
+    MX_Spanish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'VN_Vietnamese' })
-    VN_Vietnamese: string;
+    @Column({ type: "varchar", length: 255})
+    MY_Malay:string;
 
-    @Column({ type: "varchar", length: 255, name: 'ZA_Afrikaans' })
-    ZA_Afrikaans: string;
+    @Column({ type: "varchar", length: 255})
+    NG_English:string;
 
-    @Column({ type: "varchar", length: 255, name: 'ZA_English' })
-    ZA_English: string;
+    @Column({ type: "varchar", length: 255})
+    NI_Spanish:string;
 
-    @Column({ type: "varchar", length: 255, name: 'ZA_Zulu' })
-    ZA_Zulu: string;
+    @Column({ type: "varchar", length: 255})
+    NO_Norwegian:string;
 
+    @Column({ type: "varchar", length: 255})
+    NZ_English:string;
+
+    @Column({ type: "varchar", length: 255})
+    OM_Arabic:string;
+
+    @Column({ type: "varchar", length: 255})
+    PA_Spanish:string;
+
+    @Column({ type: "varchar", length: 255})
+    PE_Spanish:string;
+
+    @Column({ type: "varchar", length: 255})
+    PK_English:string;
+
+    @Column({ type: "varchar", length: 255})
+    PK_Urdu:string;
+
+    @Column({ type: "varchar", length: 255})
+    PT_Portuguese:string;
+
+    @Column({ type: "varchar", length: 255})
+    PY_Spanish:string;
+
+    @Column({ type: "varchar", length: 255})
+    QA_Arabic:string;
+
+    @Column({ type: "varchar", length: 255})
+    RO_Romanian:string;
+
+    @Column({ type: "varchar", length: 255})
+    RS_Serbian:string;
+
+    @Column({ type: "varchar", length: 255})
+    RU_Russian:string;
+
+    @Column({ type: "varchar", length: 255})
+    SA_Arabic:string;
+
+    @Column({ type: "varchar", length: 255})
+    SE_Swedish:string;
+
+    @Column({ type: "varchar", length: 255})
+    SG_English:string;
+
+    @Column({ type: "varchar", length: 255})
+    SG_Malay:string;
+
+    @Column({ type: "varchar", length: 255})
+    SG_Tamil:string;
+
+    @Column({ type: "varchar", length: 255})
+    SI_Slovenian:string;
+
+    @Column({ type: "varchar", length: 255})
+    SV_Spanish:string;
+
+    @Column({ type: "varchar", length: 255})
+    TH_Thai:string;
+
+    @Column({ type: "varchar", length: 255})
+    TR_Turkish:string;
+
+    @Column({ type: "varchar", length: 255})
+    TW_Chinese:string;
+
+    @Column({ type: "varchar", length: 255})
+    UY_Spanish:string;
+
+    @Column({ type: "varchar", length: 255})
+    VN_Vietnamese:string;
+
+    @Column({ type: "varchar", length: 255})
+    ZA_Afrikaans:string;
+
+    @Column({ type: "varchar", length: 255})
+    ZA_English:string;
+
+    @Column({ type: "varchar", length: 255})
+    ZA_Zulu:string;
+
+    
     public coupons = new Array<Coupon>();
 
     public allCategoriesArr: string[] = [];

@@ -5,6 +5,7 @@ import {
   extractLanguageAndCountry,
   getTableForLanguage,
   isLangauageFormated,
+  getLanguageUsedInCountry
 } from "../services/CouponLangaugeService";
 import { Coupon } from "../entity/Coupon";
 
@@ -142,6 +143,7 @@ export class StoresController {
     try {
       // Set the table path for the coupons repository
       this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
+
       store.allCategoriesArr = convertToArray(store.altCategories);
       store.allTopicsArr = convertToArray(store.altTopics);
       store.keywordsArr = convertToArray(store.keywords);
@@ -166,15 +168,19 @@ export class StoresController {
     //   store.storeCouponsLength = coupons.length;
     //   store.coupons = coupons;
     //  }
-     store.description = store[`${country}_${langauage}`] || store.description;
+    
+    const localeLanguage =await  getLanguageUsedInCountry(request.params.ln);
+    let storeDescrLanguage = localeLanguage  ? localeLanguage : langauage;
+    
+    store.description = store[`${country}_${storeDescrLanguage}`] || store.description;
     
      let coupons = await this.getSingleStoreCoupons(store.store);
      store.storeCouponsLength = coupons.length;
      store.coupons = coupons;
 
-      const metadata = await this.getStoreMetadata(langauage,country)
-      store.storeMetadata = fillMetadatVariables(metadata, store, fullCountryName)
-      
+    const metadata = await this.getStoreMetadata(langauage,country)
+    store.storeMetadata = fillMetadatVariables(metadata, store, fullCountryName)
+    
       return store;
     } catch (error) {
       console.log(error)
@@ -213,23 +219,6 @@ export class StoresController {
 
     return stores;
   }
-  // async getStoreCouponsAndMap(storeName:string, table: string) {
-  //   // Set the table path for the coupons repository
-  //   this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
-  //     const coupons = await this.couponsWebRepository
-  //       .createQueryBuilder()
-  //       .where(`store = :storeName`, { storeName })
-  //       .getMany();
-  //     //  const couponsByStoreId = coupons.reduce((acc, coupon) => {
-  //     //   if (!acc[coupon.store]) {
-  //     //     acc[coupon.store] = [];
-  //     //   }
-  //     //   acc[coupon.store].push(coupon);
-  //     //   return acc;
-  //     // }, {});
-  //   console.log(coupons)
-  //   return coupons ;
-  // }
 
   async getSingleStoreCoupons(storeName: string) {
     const coupons = await this.couponsWebRepository
@@ -302,9 +291,7 @@ export class StoresController {
           result[letter] = storesWithAlphabeticalKeys[letter]
         }
       }
-    
- 
- 
+  
       return result;
     } catch (error) {
       // Return an error message if an error occur

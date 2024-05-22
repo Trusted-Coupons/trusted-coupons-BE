@@ -13,6 +13,12 @@ AppDataSource.initialize().then(async () => {
     // create express app
     const app = express()
     app.use(cors());
+    app.use((_req, res, next) => {
+        res.header('Access-Control-Allow-Origin', 'https://yourfrontend.com');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        next();
+    });
 
     app.use(bodyParser.json())
     // register express routes from defined application routes

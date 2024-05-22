@@ -5,7 +5,8 @@ import { CountryLanguage } from "./entity/CountryLanguage"
 import { Store} from "./entity/Store"
 import { Category } from "./entity/Category"
 import { StoreMd } from "./entity/StoreMd"
-
+require('dotenv').config({ path:'.env' })
+console.log(process.env)
 export const AppDataSource = new DataSource({
     type: "postgres",
     host: "89.216.18.147",

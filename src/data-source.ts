@@ -9,8 +9,8 @@ require('dotenv').config({ path:'.env' })
 console.log(process.env)
 export const AppDataSource = new DataSource({
     type: "postgres",
-    host: "89.216.18.147",
-    port: 5432,
+    host: process.env.DB_HOST,
+    port: process.env.PORT ? parseInt(process.env.PORT) : 5432,
     username: "postgres",
     password: "Admin1",
     database: "postgres",

@@ -29,6 +29,6 @@ AppDataSource.initialize().then(async () => {
     })
 
     // start express server
-    app.listen(3010)
+    app.listen(80)
 
 }).catch(error => console.log(error))

@@ -6,14 +6,13 @@ import { Store} from "./entity/Store"
 import { Category } from "./entity/Category"
 import { StoreMd } from "./entity/StoreMd"
 require('dotenv').config({ path:'.env' })
-console.log(process.env)
 export const AppDataSource = new DataSource({
     type: "postgres",
     host: process.env.DB_HOST,
     port: process.env.PORT ? parseInt(process.env.PORT) : 5432,
-    username: "postgres",
-    password: "Admin1",
-    database: "postgres",
+    username:process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     synchronize: false,
     logging: false,
     entities: [

@@ -1,20 +1,34 @@
 import { Store } from "../entity/Store";
 // import { StoreMd } from "../entity/StoreMd";
 
-export const fillMetadatVariables = (metadata: any, store: Store, fullCountryName: string | undefined) => {
-    let storeCouponsLength = store.coupons.length;
-    let couponLabel: string;
+/**
+ * Fills in the metadata variables for a store.
+ *
+ * @param {any} metadata - The metadata to fill in.
+ * @param {Store} store - The store to fill in the metadata with.
+ * @param {string|undefined} fullCountryName - The full country name to fill in the metadata with.
+ * @return {any} The filled in metadata.
+ */
+export const fillMetadatVariables = (metadata: any, store: Store, fullCountryName: string | undefined): any => {
+    // Get the number of coupons for the store
+    const storeCouponsLength = store.coupons.length;
 
+    // Select a random coupon from the store to fill in the metadata with
+    let couponLabel: string;
     if (storeCouponsLength === 0) {
         couponLabel = "";
     } else {
-        let randomCoupon = getRandomIntBetween(0, storeCouponsLength - 1);
+        const randomCoupon = getRandomIntBetween(0, storeCouponsLength - 1);
         couponLabel = store.coupons[randomCoupon].label;
     }
 
+    // Get the current year and month
     const { fullYear, month } = getCurrenYearAndMonth();
-    const currentWebsiteName = 'trusted.coupons'
 
+    // Get the current website name
+    const currentWebsiteName = 'trusted.coupons';
+
+    // Define the replacements for the metadata
     const replacements = {
         STORE: getStoreName(store.store),
         DEAL: couponLabel,
@@ -23,14 +37,14 @@ export const fillMetadatVariables = (metadata: any, store: Store, fullCountryNam
         STORE_CATEGORY: store.mainCategory.replace(/_/g, " "),
         COUNTRY: fullCountryName,
         MY_WEBSITE: currentWebsiteName
+    };
 
-    }
+    // Fill in the metadata with the replacements
     for (const key in metadata) {
         for (const varName in replacements) {
             const varToReplace = `{{${varName}}}`;
             metadata[key].metadata_description = metadata[key].metadata_description.replace(new RegExp(varToReplace, 'g'), replacements[varName]);
             metadata[key].metadata_title = metadata[key].metadata_title.replace(new RegExp(varToReplace, 'g'), replacements[varName]);
-
         }
     }
 

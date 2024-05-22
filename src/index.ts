@@ -4,6 +4,7 @@ import { Request, Response } from "express"
 import { AppDataSource } from "./data-source"
 import { Routes } from "./routes"
 const cors = require("cors");
+require('dotenv').config({ path:'.env' })
 
 AppDataSource.initialize().then(async () => {
     // Create a Redis client

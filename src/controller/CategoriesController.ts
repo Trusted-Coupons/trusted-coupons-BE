@@ -41,12 +41,12 @@ export class CategoriesController {
 
     // Return an error message if the language is not found
     if (!country) {
-      return "Store language not found";
+      return "Category language not found";
     }
 
     // Return an error message if the language is not found
     if (table === "none" || statusCode !== 200) {
-      return "Coupon language not found";
+      return "Category language not found";
     }
 
     try {
@@ -67,7 +67,7 @@ export class CategoriesController {
       return categoriesWithAlphabeticalKeys;
     } catch (error) {
       // Return an error message if an error occur
-      return "No stores available";
+      return "No categories available";
     }
   }
 }

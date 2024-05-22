@@ -20,9 +20,7 @@ export class CouponsController {
    */
   async all(_request: Request, _next: NextFunction, _response: Response): Promise<object[]  | string > {
     // Destructure the query parameters from the request
-    const {
-      query: { page, perPage,store },
-    } = _request;
+    const { query: { page, perPage, store } } = _request;
 
     // Check if the language code is formatted correctly
     if (!isLangauageFormated(_request.params.ln)) {
@@ -37,7 +35,7 @@ export class CouponsController {
     if (statusCode !== 200) {
       return "Coupon language not found";
     }
-    
+
     try {
       // Set the table path for the coupons repository
       this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
@@ -45,29 +43,28 @@ export class CouponsController {
       // Calculate the limit and offset for pagination
       const limit = Number(perPage) || 20;
       const offset = (Number(page) - 1) * limit;
-   
 
-
-      // Retrieve the coupons from the repository
+      // Build the query to retrieve the coupons from the repository
       const query = this.couponsWebRepository
         .createQueryBuilder()
         .limit(limit)
-        .offset(offset)
+        .offset(offset);
 
-        if(store){ 
-          query.where({ store })
-        }
-      
-      const coupons = await query.getManyAndCount();
-      
- 
-      const mappedCoupons = coupons[0].map(coupon => ({
+      // If the store is provided, filter the coupons by the store name
+      if (store) {
+        query.where({ store });
+      }
+
+      // Retrieve the coupons from the repository
+      const [coupons, count] = await query.getManyAndCount();
+
+      // Map the coupons with the table name and total count
+      const mappedCoupons = coupons.map(coupon => ({
         ...coupon,
         table_name: table,
-        total_coupons_count: coupons[1] ? coupons[1] : 0
+        total_coupons_count: count,
       }));
-    
-  
+
       // Return the mapped coupons
       return mappedCoupons;
     } catch (error) {

@@ -77,7 +77,7 @@ export class StoresController {
 
 
       stores.map((store) => {
-        store.keywordsArr = JSON.stringify(convertToArray(store.keywords));
+        store.keywordsArr = convertToArray(store.keywords);
       });
       const storesWithCoupons = await this.getStoreCouponsAndMap(stores, table);
 
@@ -131,8 +131,8 @@ export class StoresController {
 
       store.allCategoriesArr = convertToArray(store.altCategories);
       store.allTopicsArr = convertToArray(store.altTopics);
-      store.keywordsArr = store.keywords.slice(1, -1);;
-    
+      store.keywordsArr = convertToArray(store.keywords);
+
       const localeLanguage = await getLanguageUsedInCountry(request.params.ln);
       let storeDescrLanguage = localeLanguage ? localeLanguage : langauage;
 
@@ -234,7 +234,7 @@ export class StoresController {
         .where("store.country_language like :country", { country: `%${country}_${langauage}%` })
         .getMany();
       stores.map((store) => {
-        store.keywordsArr = JSON.stringify(convertToArray(store.keywords));
+        store.keywordsArr = convertToArray(store.keywords);
       });
       const storesWithCoupons = await this.getStoreCouponsAndMap(stores, table);
 

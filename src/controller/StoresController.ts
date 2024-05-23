@@ -132,7 +132,7 @@ export class StoresController {
       store.allCategoriesArr = convertToArray(store.altCategories);
       store.allTopicsArr = convertToArray(store.altTopics);
       store.keywordsArr = convertToArray(store.keywords);
-
+        
       const localeLanguage = await getLanguageUsedInCountry(request.params.ln);
       let storeDescrLanguage = localeLanguage ? localeLanguage : langauage;
 

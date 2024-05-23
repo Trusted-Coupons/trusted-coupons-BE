@@ -1,10 +1,18 @@
-export  function  convertToArray(str: string): string[] {
-    return str
-      .replace(/^\[/g, "")
-      .replace(/\]$/g, "")
-      .split("', '")
-      .map((word) => word.replace(/^'|'$/g, ""));
-  }
+export function convertToArray(str: string): string[] {
+  // Remove leading and trailing double quotes
+  str = str.replace(/^"|\s*"$/g, "");
+
+  // Remove leading and trailing square brackets
+  str = str.replace(/^\[|\]$/g, "");
+
+  // Split the string by comma and single quotes
+  const array = str.split("', '");
+
+  // Remove any extra single quotes from array elements
+  const result = array.map(word => word.replace(/^'|'$/g, ""));
+  
+  return result;
+}
 
 export const sanitizeCircularReferences = (_data) => {
     const seen = new WeakSet();

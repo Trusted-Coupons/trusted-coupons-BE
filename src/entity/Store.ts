@@ -407,7 +407,7 @@ export class Store {
 
     public allCategoriesArr: string[] = [];
 
-    public keywordsArr: string[] = [];
+    public keywordsArr: string;
 
     public allTopicsArr: string[] = [];
 

@@ -6,7 +6,7 @@ export function convertToArray(str: string): string[] {
   str = str.replace(/^\[|\]$/g, "");
 
   // Split the string by comma and single quotes
-  const array = str.split("', '");
+  const array = str.split(`", "`);
 
   // Remove any extra single quotes from array elements
   const result = array.map(word => word.replace(/^'|'$/g, ""));

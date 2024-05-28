@@ -15,6 +15,10 @@ export const AppDataSource = new DataSource({
     database: process.env.DB_NAME,
     synchronize: false,
     logging: false,
+    ssl: {
+        rejectUnauthorized: true,
+        ca: process.env.CA_CERT,
+    },
     entities: [
         Coupon,
         CountryLanguage,

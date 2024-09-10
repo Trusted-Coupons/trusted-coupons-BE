@@ -5,7 +5,7 @@ import {
   extractLanguageAndCountry,
   getTableForLanguage,
   isLangauageFormated,
-  getLanguageUsedInCountry
+  getLanguageUsedInCountry,
 } from "../services/CouponLangaugeService";
 import { Coupon } from "../entity/Coupon";
 
@@ -24,76 +24,72 @@ export class StoresController {
    * @param {Response} _response - The response object.
    * @return {Promise<Object[] | string>} An array of mapped stores or an error message.
    */
+
   async all(
     _request: Request,
     _next: NextFunction,
     _response: Response
   ): Promise<object[] | string> {
-    // Destructure the query parameters from the request
-
-
     const {
       query: { page, perPage },
     } = _request;
+
     // Check if the language code is formatted correctly
     if (!isLangauageFormated(_request.params.ln)) {
-      // Return an error message if the language code is invalid
       return "invalid language code";
     }
 
-    const { table, country, statusCode, langauage } = await this.getTableAndCountry(
-      _request.params.ln
-    );
+    const { table, country, statusCode, langauage } =
+      await this.getTableAndCountry(_request.params.ln);
 
-    // Return an error message if the language is not found
     if (!country) {
       return "Store language not found";
     }
 
-    // Return an error message if the language is not found
     if (table === "none" || statusCode !== 200) {
       return "Coupon language not found";
     }
 
-
-
     try {
-      // Set the table path for the coupons repository
       this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
 
-      // Calculate the limit and offset for pagination
       const limit = Number(perPage);
       const offset = (Number(page) - 1) * limit;
 
-      // Retrieve the stores from the repository
       const stores = await this.storesWebRepository
-        .createQueryBuilder('store')
-        .where("store.country_language like :country", { country: `%${country}_${langauage}%` })
-        .select(['store.id', 'store.store', 'store.description', 'store.keywords'])
+        .createQueryBuilder("store")
+        .where("store.country_language like :country", {
+          country: `%${country}_${langauage}%`,
+        })
+        .select([
+          "store.id",
+          "store.store",
+          "store.description",
+          "store.keywords",
+        ])
         .limit(limit)
         .offset(offset)
         .getMany();
 
-
-
       stores.map((store) => {
         store.keywordsArr = convertToArray(store.keywords);
       });
-      const storesWithCoupons = await this.getStoreCouponsAndMap(stores, table);
 
+      const storesWithCoupons = await this.getStoreCouponsAndMap(stores, table);
 
       return storesWithCoupons;
     } catch (error) {
-      // Return an error message if an error occur
       return "No stores available";
     }
   }
 
   async getTableAndCountry(ln: string) {
     const { country } = extractLanguageAndCountry(ln);
-    const { table, statusCode, langauage, fullCountryName } = await getTableForLanguage(ln);
+    const { table, statusCode, langauage, fullCountryName } =
+      await getTableForLanguage(ln);
     return { table, country, statusCode, langauage, fullCountryName };
   }
+
   async one(
     request: Request,
     _response: Response,
@@ -108,9 +104,8 @@ export class StoresController {
       return "invalid language code";
     }
 
-    const { table, country, statusCode, langauage, fullCountryName } = await this.getTableAndCountry(
-      request.params.ln
-    );
+    const { table, country, statusCode, langauage, fullCountryName } =
+      await this.getTableAndCountry(request.params.ln);
     // Return an error message if the language is not found
     if (!country) {
       return "Store language not found";
@@ -136,18 +131,24 @@ export class StoresController {
       const localeLanguage = await getLanguageUsedInCountry(request.params.ln);
       let storeDescrLanguage = localeLanguage ? localeLanguage : langauage;
 
-      store.description = store[`${country}_${storeDescrLanguage}`] || store.description;
+      store.description =
+        store[`${country}_${storeDescrLanguage}`] || store.description;
 
-      let coupons = await this.getSingleStoreCoupons(store.store);
+      let groupedCoupons = await this.getSingleStoreCoupons(store.store);
+      let coupons = groupedCoupons[store.store] || []; // Extract the array of coupons for the specific store, or an empty array if none exist
       store.storeCouponsLength = coupons.length;
       store.coupons = coupons;
 
-      const metadata = await this.getStoreMetadata(langauage, country)
-      store.storeMetadata = fillMetadatVariables(metadata, store, fullCountryName)
+      const metadata = await this.getStoreMetadata(langauage, country);
+      store.storeMetadata = fillMetadatVariables(
+        metadata,
+        store,
+        fullCountryName
+      );
 
       return store;
     } catch (error) {
-      console.log(error)
+      console.log(error);
       // Return an error message if an error occur
       return "No stores available";
     }
@@ -156,18 +157,22 @@ export class StoresController {
   async getStoreMetadata(langauage: string, country: string) {
     const mdr = AppDataSource.getRepository(StoreMd);
     return await mdr.findBy({ language: langauage, country: country });
-
   }
+
   async getStoreCouponsAndMap(stores: Store[], table: string) {
     // Set the table path for the coupons repository
     this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
 
     const storeNames = stores.map((store) => store.store);
+    const currentDate = new Date(); // Get the current date
 
     const coupons = await this.couponsWebRepository
       .createQueryBuilder()
       .where(`store IN (:...storeNames)`, { storeNames })
+      .andWhere("end_date IS NOT NULL") // Filter out coupons where end_date is null
+      .andWhere("end_date >= :currentDate", { currentDate }) // Filter out expired coupons
       .getMany();
+
     const couponsByStoreId = coupons.reduce((acc, coupon) => {
       if (!acc[coupon.store]) {
         acc[coupon.store] = [];
@@ -176,27 +181,34 @@ export class StoresController {
       return acc;
     }, {});
 
-    stores.forEach((store) => {
+    // Filter stores to only those that have at least one coupon
+    const storesWithCoupons = stores.filter((store) => {
       store.coupons = couponsByStoreId[store.store] || [];
       store.storeCouponsLength = store.coupons.length;
+      return store.storeCouponsLength > 0; // Only keep stores with coupons
     });
 
-    return stores;
+    return storesWithCoupons;
   }
 
   async getSingleStoreCoupons(storeName: string) {
+    const currentDate = new Date(); // Get the current date
     const coupons = await this.couponsWebRepository
       .createQueryBuilder()
       .where(`store = :storeName`, { storeName })
+      .andWhere("end_date IS NOT NULL") // Filter out coupons where end_date is null
+      .andWhere("end_date >= :currentDate", { currentDate }) // Filter out expired coupons
       .getMany();
-    coupons.reduce((acc, coupon) => {
+
+    const groupedCoupons = coupons.reduce((acc, coupon) => {
       if (!acc[coupon.store]) {
         acc[coupon.store] = [];
       }
       acc[coupon.store].push(coupon);
       return acc;
     }, {});
-    return coupons;
+
+    return groupedCoupons; // Return the grouped coupons
   }
 
   async getStoresWithAlphabeticalKeys(
@@ -209,9 +221,8 @@ export class StoresController {
       return "invalid language code";
     }
 
-    const { table, country, statusCode, langauage } = await this.getTableAndCountry(
-      _request.params.ln
-    );
+    const { table, country, statusCode, langauage } =
+      await this.getTableAndCountry(_request.params.ln);
 
     // Return an error message if the language is not found
     if (!country) {
@@ -228,31 +239,45 @@ export class StoresController {
       this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
 
       const stores = await this.storesWebRepository
-        .createQueryBuilder('store')
+        .createQueryBuilder("store")
         .orderBy("store", "ASC")
-        .select(['store.id', 'store.store', 'store.description', 'store.keywords'])
-        .where("store.country_language like :country", { country: `%${country}_${langauage}%` })
+        .select([
+          "store.id",
+          "store.store",
+          "store.description",
+          "store.keywords",
+        ])
+        .where("store.country_language like :country", {
+          country: `%${country}_${langauage}%`,
+        })
         .getMany();
       stores.map((store) => {
         store.keywordsArr = convertToArray(store.keywords);
       });
       const storesWithCoupons = await this.getStoreCouponsAndMap(stores, table);
 
-      const storesWithAlphabeticalKeys = storesWithCoupons.reduce((acc, store) => {
-        const firstLetter = store.store.charAt(0).toLowerCase();
-        if (!acc[firstLetter]) {
-          acc[firstLetter] = [];
-        }
-        acc[firstLetter].push(store);
-        return acc;
-      }, {});
+      const storesWithAlphabeticalKeys = storesWithCoupons.reduce(
+        (acc, store) => {
+          const firstLetter = store.store.charAt(0).toLowerCase();
+          if (!acc[firstLetter]) {
+            acc[firstLetter] = [];
+          }
+          acc[firstLetter].push(store);
+          return acc;
+        },
+        {}
+      );
       let result = {};
 
-      for (let letter = 'a'; letter <= 'z'; letter = String.fromCharCode(letter.charCodeAt(0) + 1)) {
+      for (
+        let letter = "a";
+        letter <= "z";
+        letter = String.fromCharCode(letter.charCodeAt(0) + 1)
+      ) {
         if (!storesWithAlphabeticalKeys[letter]) {
           result[letter] = [];
         } else {
-          result[letter] = storesWithAlphabeticalKeys[letter]
+          result[letter] = storesWithAlphabeticalKeys[letter];
         }
       }
 

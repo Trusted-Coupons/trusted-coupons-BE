@@ -73,7 +73,7 @@ export class Coupon {
   primary_location: string;
 
   @Column()
-  rating: string;
+  rating: number;
 
   public table_name: string;
 }

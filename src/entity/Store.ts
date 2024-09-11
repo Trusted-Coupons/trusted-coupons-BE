@@ -12,6 +12,12 @@ export type StoreMetadata = {
     my_website: string
 }
 
+export type  SimilarStore = {
+    storeName: string,
+    storeId: number,
+    totalCouponRating: number
+}
+
 @Entity({ name: 'stores_website'})
 export class Store {
     @PrimaryGeneratedColumn()
@@ -415,5 +421,8 @@ export class Store {
 
     public storeCouponsLength: number
 
+    public similarStores: SimilarStore[] = [];
+
+    public storeAppearInCountries: string[] = [];
 
 }

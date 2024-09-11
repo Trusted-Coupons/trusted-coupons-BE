@@ -145,7 +145,9 @@ export class StoresController {
         store,
         fullCountryName
       );
-
+      const similarStores = await this.getSimilarShopsForCoupons(store.mainCategory);
+      store.similarStores = similarStores;
+      store.storeAppearInCountries = await this.getStoreAppearInCountries(store)
       return store;
     } catch (error) {
       console.log(error);
@@ -187,7 +189,6 @@ export class StoresController {
       store.storeCouponsLength = store.coupons.length;
       return store.storeCouponsLength > 0; // Only keep stores with coupons
     });
-
     return storesWithCoupons;
   }
 
@@ -286,5 +287,52 @@ export class StoresController {
       // Return an error message if an error occur
       return "No stores available";
     }
+  }
+
+  private async getSimilarShopsForCoupons(categories: any) {
+    const stores = await this.storesWebRepository.findBy({ mainCategory: categories });
+    const similarStores: any[] = [];
+    const topCouponsLimit = 5; // Define how many top coupons you want per store
+
+    for (let i = 0; i < stores.length; i++) {
+      // console.log(stores[i].mainCategory);
+
+      // Get all coupons for the current store
+      let groupedCoupons = await this.getSingleStoreCoupons(stores[i].store);
+      let storeCoupons = groupedCoupons[stores[i].store];
+
+      // console.log(storeCoupons,topCouponsLimit)
+      let sorted = []
+      // Sort the coupons by rating in descending order
+      if (storeCoupons) {
+        sorted = storeCoupons.sort((a: any, b: any) => b.rating - a.rating);
+      }
+      //   // Take only the top N coupons (e.g., top 5)
+      const topRatedCoupons: Coupon[] = sorted.slice(0, topCouponsLimit);
+
+      // Add store details and top-rated coupons to the similarStores array
+      similarStores.push({
+        storeName: stores[i].store,
+        storeId: stores[i].id,
+        totalCouponRating: topRatedCoupons.reduce((sum, coupon) => sum + coupon.rating, 0)
+      })
+
+
+    }
+    similarStores.sort((a, b) => b.totalCouponRating - a.totalCouponRating);
+    return similarStores.slice(0, 10);
+  }
+
+  private async getStoreAppearInCountries(store: Store) {
+    // const storeCountries = store.country_language.split(",");
+    // Replace all single quotes with double quotes to make it valid JSON
+    const formattedStr = store.country_language.replace(/'/g, '"');
+
+    // Remove the square brackets (optional but good to clean up extra spaces)
+    const parsedStr = JSON.parse(formattedStr) as string[];
+    //   // Get first two letters and remove duplicates
+    const result = [...new Set(parsedStr.map(item => item.slice(0, 2)))];
+
+    return result;
   }
 }

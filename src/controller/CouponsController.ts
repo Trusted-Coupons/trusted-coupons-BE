@@ -118,7 +118,7 @@ export class CouponsController {
         .createQueryBuilder()
         .update()
         .set({ rating: () => "rating + 1" })
-        .where("offer_id = :id", { id })
+        .where("id = :id", { id })
         .execute();
 
     // If the coupon is not found, return an error message

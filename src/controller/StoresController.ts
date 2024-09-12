@@ -12,6 +12,7 @@ import { Coupon } from "../entity/Coupon";
 import { convertToArray } from "../services/Helpers";
 import { StoreMd } from "../entity/StoreMd";
 import { fillMetadatVariables } from "../services/StoreService";
+import { Not } from "typeorm";
 
 export class StoresController {
   private storesWebRepository = AppDataSource.getRepository(Store);
@@ -145,7 +146,7 @@ export class StoresController {
         store,
         fullCountryName
       );
-      const similarStores = await this.getSimilarShopsForCoupons(store.mainCategory);
+      const similarStores = await this.getSimilarShopsForCoupons(store.mainCategory,store.store);
       store.similarStores = similarStores;
       store.storeAppearInCountries = await this.getStoreAppearInCountries(store)
       return store;
@@ -289,8 +290,8 @@ export class StoresController {
     }
   }
 
-  private async getSimilarShopsForCoupons(categories: any) {
-    const stores = await this.storesWebRepository.findBy({ mainCategory: categories });
+  private async getSimilarShopsForCoupons(categories: any,storeName: string) {
+    const stores = await this.storesWebRepository.findBy({ mainCategory: categories, store: Not(storeName)});
     const similarStores: any[] = [];
     const topCouponsLimit = 5; // Define how many top coupons you want per store
 
@@ -324,7 +325,6 @@ export class StoresController {
   }
 
   private async getStoreAppearInCountries(store: Store) {
-    // const storeCountries = store.country_language.split(",");
     // Replace all single quotes with double quotes to make it valid JSON
     const formattedStr = store.country_language.replace(/'/g, '"');
 

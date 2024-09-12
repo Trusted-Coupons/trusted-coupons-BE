@@ -48,6 +48,6 @@ AppDataSource.initialize()
     });
 
     // start express server
-    app.listen(3020);
+    app.listen(3010);
   })
   .catch((error) => console.log(error));

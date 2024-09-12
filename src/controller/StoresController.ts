@@ -167,15 +167,14 @@ export class StoresController {
     this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
 
     const storeNames = stores.map((store) => store.store);
-    const currentDate = new Date(); // Get the current date
+    const currentDate = new Date().toISOString().split("T")[0];
 
     const coupons = await this.couponsWebRepository
       .createQueryBuilder()
       .where(`store IN (:...storeNames)`, { storeNames })
-      .andWhere("end_date IS NOT NULL") // Filter out coupons where end_date is null
-      .andWhere("end_date >= :currentDate", { currentDate }) // Filter out expired coupons
+      .andWhere("end_date IS NOT NULL") // Ensure end_date is not null
+      .andWhere("end_date::date >= :currentDate::date", { currentDate }) // Cast to date and compare
       .getMany();
-
     const couponsByStoreId = coupons.reduce((acc, coupon) => {
       if (!acc[coupon.store]) {
         acc[coupon.store] = [];
@@ -194,12 +193,13 @@ export class StoresController {
   }
 
   async getSingleStoreCoupons(storeName: string) {
-    const currentDate = new Date(); // Get the current date
+    const currentDate = new Date().toISOString().split("T")[0];
+
     const coupons = await this.couponsWebRepository
       .createQueryBuilder()
       .where(`store = :storeName`, { storeName })
-      .andWhere("end_date IS NOT NULL") // Filter out coupons where end_date is null
-      .andWhere("end_date >= :currentDate", { currentDate }) // Filter out expired coupons
+      .andWhere("end_date IS NOT NULL") // Ensure end_date is not null
+      .andWhere("end_date::date >= :currentDate::date", { currentDate }) // Cast to date and compare
       .getMany();
 
     const groupedCoupons = coupons.reduce((acc, coupon) => {

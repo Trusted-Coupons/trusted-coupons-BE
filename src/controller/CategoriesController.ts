@@ -7,7 +7,6 @@ import {
 } from "../services/CouponLangaugeService";
 import { Category } from "../entity/Category";
 
-
 export class CategoriesController {
   private categoriesRepsitory = AppDataSource.getRepository(Category);
 
@@ -19,10 +18,9 @@ export class CategoriesController {
 
   async all(_request: Request, _next: NextFunction, _response: Response) {
     return await this.categoriesRepsitory
-    .createQueryBuilder()
-    .orderBy("category", "ASC")
-    .getMany();
-
+      .createQueryBuilder()
+      .orderBy("category", "ASC")
+      .getMany();
   }
 
   async getCategoriesWithAlphabeticalKeys(

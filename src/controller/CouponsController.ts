@@ -1,14 +1,15 @@
 import { AppDataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { Coupon } from "../entity/Coupon";
-import { getTableForLanguage, isLangauageFormated } from "../services/CouponLangaugeService";
+import {
+  getTableForLanguage,
+  isLangauageFormated,
+} from "../services/CouponLangaugeService";
 import { Category } from "../entity/Category";
 
 export class CouponsController {
-
   private couponsWebRepository = AppDataSource.getRepository(Coupon);
   private categoriesRepsitory = AppDataSource.getRepository(Category);
-
 
   /**
    * Retrieve all coupons for a specific language.
@@ -18,9 +19,15 @@ export class CouponsController {
    * @param {Response} _response - The response object.
    * @return {Promise<Object[] | string>} An array of mapped coupons or an error message.
    */
-  async all(_request: Request, _next: NextFunction, _response: Response): Promise<object[]  | string > {
+  async all(
+    _request: Request,
+    _next: NextFunction,
+    _response: Response
+  ): Promise<object[] | string> {
     // Destructure the query parameters from the request
-    const { query: { page, perPage, store } } = _request;
+    const {
+      query: { page, perPage, store },
+    } = _request;
 
     // Check if the language code is formatted correctly
     if (!isLangauageFormated(_request.params.ln)) {
@@ -59,7 +66,7 @@ export class CouponsController {
       const [coupons, count] = await query.getManyAndCount();
 
       // Map the coupons with the table name and total count
-      const mappedCoupons = coupons.map(coupon => ({
+      const mappedCoupons = coupons.map((coupon) => ({
         ...coupon,
         table_name: table,
         total_coupons_count: count,
@@ -73,7 +80,6 @@ export class CouponsController {
     }
   }
 
-
   /**
    * Retrieve a specific coupon by its ID for a given language.
    *
@@ -82,8 +88,11 @@ export class CouponsController {
    * @param {NextFunction} _next - The next function.
    * @return {Promise<Object | string>} The coupon object if found, or an error message.
    */
-  async one(request: Request, _response: Response, _next: NextFunction): Promise<object | string> {
-   
+  async one(
+    request: Request,
+    _response: Response,
+    _next: NextFunction
+  ): Promise<object | string> {
     // Extract the coupon ID and language code from the request parameters
     const id = request.params.id;
     const ln_formated = request.params.ln_formated;
@@ -93,7 +102,7 @@ export class CouponsController {
 
     // Find the coupon by its ID using the coupons repository
     const coupon = await this.couponsWebRepository.findOneBy({ offer_id: id });
-    if(coupon){
+    if (coupon) {
       coupon.table_name = ln_formated;
     }
 
@@ -105,21 +114,24 @@ export class CouponsController {
     // Return the coupon object
     return coupon;
   }
-  async clicked(request: Request, _response: Response, _next: NextFunction): Promise<object | string> {
-    
+  async clicked(
+    request: Request,
+    _response: Response,
+    _next: NextFunction
+  ): Promise<object | string> {
     // Extract the coupon ID and language code from the request parameters
     const id = request.body.coupon_id;
-    const coupons_table = request.body.coupons_table;
+    // const coupons_table = request.body.coupons_table;
     // Set the table path for the coupons repository
-    this.couponsWebRepository.metadata.tablePath = `coupons_website_${coupons_table}`;
+    // this.couponsWebRepository.metadata.tablePath = `coupons_website_${coupons_table}`;
 
     // Find the coupon by its ID using the coupons repository
-    const coupon  = await this.couponsWebRepository
-        .createQueryBuilder()
-        .update()
-        .set({ rating: () => "rating + 1" })
-        .where("id = :id", { id })
-        .execute();
+    const coupon = await this.couponsWebRepository
+      .createQueryBuilder()
+      .update()
+      .set({ rating: () => "rating + 1" })
+      .where("id = :id", { id })
+      .execute();
 
     // If the coupon is not found, return an error message
     if (!coupon) {
@@ -128,14 +140,18 @@ export class CouponsController {
 
     // Return the coupon object
     return {
-      "message": "Coupon clicked",
-      statusCode: 200
-    }
+      message: "Coupon clicked",
+      statusCode: 200,
+    };
   }
 
-  async couponsByCategory(request: Request, _response: Response, _next: NextFunction): Promise<object | string> {
-     // Destructure the query parameters from the request
-     const {
+  async couponsByCategory(
+    request: Request,
+    _response: Response,
+    _next: NextFunction
+  ): Promise<object | string> {
+    // Destructure the query parameters from the request
+    const {
       query: { page, perPage },
     } = request;
 
@@ -162,22 +178,25 @@ export class CouponsController {
       const offset = (Number(page) - 1) * limit;
 
       const categoryId = request.params.categoryId;
-      const category = await this.categoriesRepsitory.findOneBy({ id: Number(categoryId) });
-     
+      const category = await this.categoriesRepsitory.findOneBy({
+        id: Number(categoryId),
+      });
 
       // Retrieve the coupons from the repository
       const query = this.couponsWebRepository
-        .createQueryBuilder('coupon')
-        .where("coupon.categories like :category", {category: `%${category?.category}%`})
+        .createQueryBuilder("coupon")
+        .where("coupon.categories like :category", {
+          category: `%${category?.category}%`,
+        })
         .limit(limit)
-        .offset(offset)
-      
+        .offset(offset);
+
       const coupons = await query.getMany();
 
       // Map the coupons with the table name
-      const mappedCoupons = coupons.map(coupon => ({
+      const mappedCoupons = coupons.map((coupon) => ({
         ...coupon,
-        table_name: table
+        table_name: table,
       }));
 
       // Return the mapped coupons
@@ -188,5 +207,3 @@ export class CouponsController {
     }
   }
 }
-
-

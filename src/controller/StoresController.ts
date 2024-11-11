@@ -31,9 +31,9 @@ export class StoresController {
     _next: NextFunction,
     _response: Response
   ): Promise<object[] | string> {
-    const {
-      query: { page, perPage },
-    } = _request;
+    // const {
+    //   query: { page, perPage },
+    // } = _request;
 
     // Check if the language code is formatted correctly
     if (!isLangauageFormated(_request.params.ln)) {
@@ -54,8 +54,8 @@ export class StoresController {
     try {
       this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
 
-      const limit = Number(perPage);
-      const offset = (Number(page) - 1) * limit;
+      // const limit = Number(perPage);
+      // const offset = (Number(page) - 1) * limit;
 
       const stores = await this.storesWebRepository
         .createQueryBuilder("store")
@@ -67,9 +67,10 @@ export class StoresController {
           "store.store",
           "store.description",
           "store.keywords",
+          "store.mainCategory",
+          "store.monthlyVisits",
+          "store.ourCategories",
         ])
-        .limit(limit)
-        .offset(offset)
         .getMany();
 
       stores.map((store) => {
@@ -135,7 +136,7 @@ export class StoresController {
       store.description =
         store[`${country}_${storeDescrLanguage}`] || store.description;
 
-      let groupedCoupons = await this.getSingleStoreCoupons(store.store);
+      let groupedCoupons = await this.getSingleStoreCoupons(store.store, table);
       let coupons = groupedCoupons[store.store] || []; // Extract the array of coupons for the specific store, or an empty array if none exist
       store.storeCouponsLength = coupons.length;
       store.coupons = coupons;
@@ -146,9 +147,14 @@ export class StoresController {
         store,
         fullCountryName
       );
-      const similarStores = await this.getSimilarShopsForCoupons(store.mainCategory,store.store);
+      const similarStores = await this.getSimilarShopsForCoupons(
+        store.mainCategory,
+        store.store
+      );
       store.similarStores = similarStores;
-      store.storeAppearInCountries = await this.getStoreAppearInCountries(store)
+      store.storeAppearInCountries = await this.getStoreAppearInCountries(
+        store
+      );
       return store;
     } catch (error) {
       console.log(error);
@@ -174,7 +180,9 @@ export class StoresController {
       .where(`store IN (:...storeNames)`, { storeNames })
       .andWhere("end_date IS NOT NULL") // Ensure end_date is not null
       .andWhere("end_date::date >= :currentDate::date", { currentDate }) // Cast to date and compare
+      .orderBy("rating", "DESC") // Order by rating in descending order
       .getMany();
+
     const couponsByStoreId = coupons.reduce((acc, coupon) => {
       if (!acc[coupon.store]) {
         acc[coupon.store] = [];
@@ -192,7 +200,8 @@ export class StoresController {
     return storesWithCoupons;
   }
 
-  async getSingleStoreCoupons(storeName: string) {
+  async getSingleStoreCoupons(storeName: string, table: string) {
+    this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
     const currentDate = new Date().toISOString().split("T")[0];
 
     const coupons = await this.couponsWebRepository
@@ -211,6 +220,124 @@ export class StoresController {
     }, {});
 
     return groupedCoupons; // Return the grouped coupons
+  }
+
+  async getStoresByCategory(
+    _request: Request,
+    _next: NextFunction,
+    _response: Response
+  ): Promise<object | string> {
+    if (!isLangauageFormated(_request.params.ln)) {
+      return "invalid language code";
+    }
+
+    const { table, country, statusCode, langauage } =
+      await this.getTableAndCountry(_request.params.ln);
+
+    const category = _request.query.category;
+
+    if (!category) {
+      return "Store category not found";
+    }
+
+    if (!country) {
+      return "Store language not found";
+    }
+
+    if (table === "none" || statusCode !== 200) {
+      return "Coupon language not found";
+    }
+
+    try {
+      this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
+
+      const stores = await this.storesWebRepository
+        .createQueryBuilder("store")
+        .orderBy("store", "ASC")
+        .select([
+          "store.id",
+          "store.store",
+          "store.description",
+          "store.keywords",
+        ])
+        .where("store.country_language LIKE :country", {
+          country: `%${country}_${langauage}%`,
+        })
+        .andWhere("store.ourCategories LIKE :category", {
+          category: `%${category}%`, // Add Health condition to the query
+        })
+        .getMany();
+
+      stores.map((store) => {
+        store.keywordsArr = convertToArray(store.keywords);
+      });
+
+      const storesWithCoupons = await this.getStoreCouponsAndMap(stores, table);
+
+      return storesWithCoupons;
+    } catch (error) {
+      return "No stores available";
+    }
+  }
+
+  async getAllStores(
+    _request: Request,
+    _next: NextFunction,
+    _response: Response
+  ): Promise<object | string> {
+    if (!isLangauageFormated(_request.params.ln)) {
+      return "invalid language code";
+    }
+
+    const { table, country, statusCode, langauage } =
+      await this.getTableAndCountry(_request.params.ln);
+
+    if (!country) {
+      return "Store language not found";
+    }
+
+    if (table === "none" || statusCode !== 200) {
+      return "Coupon language not found";
+    }
+
+    try {
+      this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
+
+      const stores = await this.storesWebRepository
+        .createQueryBuilder("store")
+        .orderBy("store", "ASC")
+        .select([
+          "store.id",
+          "store.store",
+          "store.description",
+          "store.mainCategory",
+          "store.keywords",
+        ])
+        .where("store.country_language like :country", {
+          country: `%${country}_${langauage}%`,
+        })
+        .getMany();
+
+      stores.map((store) => {
+        store.keywordsArr = convertToArray(store.keywords);
+      });
+
+      const storesWithCoupons = await this.getStoreCouponsAndMap(stores, table);
+
+      // Group stores by mainCategory
+      const groupedStores = storesWithCoupons.reduce((result, store) => {
+        const category = store.mainCategory || "Others"; // Default to 'Others' if no category
+        if (!result[category]) {
+          result[category] = [];
+        }
+        result[category].push(store);
+        return result;
+      }, {});
+
+      return groupedStores;
+    } catch (error) {
+      return "No stores available";
+    }
   }
 
   async getStoresWithAlphabeticalKeys(
@@ -253,9 +380,11 @@ export class StoresController {
           country: `%${country}_${langauage}%`,
         })
         .getMany();
+
       stores.map((store) => {
         store.keywordsArr = convertToArray(store.keywords);
       });
+
       const storesWithCoupons = await this.getStoreCouponsAndMap(stores, table);
 
       const storesWithAlphabeticalKeys = storesWithCoupons.reduce(
@@ -290,20 +419,23 @@ export class StoresController {
     }
   }
 
-  private async getSimilarShopsForCoupons(categories: any,storeName: string) {
-    const stores = await this.storesWebRepository.findBy({ mainCategory: categories, store: Not(storeName)});
+  private async getSimilarShopsForCoupons(categories: any, storeName: string) {
+    const stores = await this.storesWebRepository.findBy({
+      mainCategory: categories,
+      store: Not(storeName),
+    });
     const similarStores: any[] = [];
     const topCouponsLimit = 5; // Define how many top coupons you want per store
 
     for (let i = 0; i < stores.length; i++) {
-      // console.log(stores[i].mainCategory);
-
       // Get all coupons for the current store
-      let groupedCoupons = await this.getSingleStoreCoupons(stores[i].store);
+      let groupedCoupons = await this.getSingleStoreCoupons(
+        stores[i].store,
+        "us_english"
+      );
       let storeCoupons = groupedCoupons[stores[i].store];
 
-      // console.log(storeCoupons,topCouponsLimit)
-      let sorted = []
+      let sorted = [];
       // Sort the coupons by rating in descending order
       if (storeCoupons) {
         sorted = storeCoupons.sort((a: any, b: any) => b.rating - a.rating);
@@ -315,10 +447,11 @@ export class StoresController {
       similarStores.push({
         storeName: stores[i].store,
         storeId: stores[i].id,
-        totalCouponRating: topRatedCoupons.reduce((sum, coupon) => sum + coupon.rating, 0)
-      })
-
-
+        totalCouponRating: topRatedCoupons.reduce(
+          (sum, coupon) => sum + coupon.rating,
+          0
+        ),
+      });
     }
     similarStores.sort((a, b) => b.totalCouponRating - a.totalCouponRating);
     return similarStores.slice(0, 10);
@@ -331,7 +464,7 @@ export class StoresController {
     // Remove the square brackets (optional but good to clean up extra spaces)
     const parsedStr = JSON.parse(formattedStr) as string[];
     //   // Get first two letters and remove duplicates
-    const result = [...new Set(parsedStr.map(item => item.slice(0, 2)))];
+    const result = [...new Set(parsedStr.map((item) => item.slice(0, 2)))];
 
     return result;
   }

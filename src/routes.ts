@@ -34,9 +34,21 @@ export const Routes = [
   },
   {
     method: "get",
-    route: "/:ln/stores-all",
+    route: "/:ln/stores-all-alphabetical",
     controller: StoresController,
     action: "getStoresWithAlphabeticalKeys",
+  },
+  {
+    method: "get",
+    route: "/:ln/stores-all",
+    controller: StoresController,
+    action: "getAllStores",
+  },
+  {
+    method: "get",
+    route: "/:ln/stores-by-category",
+    controller: StoresController,
+    action: "getStoresByCategory",
   },
   {
     method: "get",

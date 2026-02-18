@@ -21,7 +21,8 @@ export const AppDataSource = new DataSource({
   migrationsRun: false,
   subscribers: [],
   ssl: {
-    rejectUnauthorized: false, // This is often needed for DigitalOcean connections
+    rejectUnauthorized: true,
+    ca: process.env.CA_CERT,
   },
   extra: {
     max: 20, // Max connections in pool

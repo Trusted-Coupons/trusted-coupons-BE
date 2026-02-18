@@ -13,7 +13,7 @@ export function convertToArray(str: string): string[] {
 
   // Split and clean elements
   return trimmed
-    .split(`", "`)
+    .split("', '")
     .map((word) => word.replace(/^'|'$/g, ""))
     .filter(Boolean); // Remove empty strings
 }

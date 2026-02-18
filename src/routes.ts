@@ -1,59 +1,77 @@
-import { CouponsController } from "./controller/CouponsController"
-import { StoresController } from "./controller/StoresController"
-import { CategoriesController } from "./controller/CategoriesController"
+import { CouponsController } from "./controller/CouponsController";
+import { StoresController } from "./controller/StoresController";
+import { CategoriesController } from "./controller/CategoriesController";
 export const Routes = [
-    {
-        method: "get",
-        route: "/:ln/coupons",
-        controller: CouponsController,
-        action: "all"
-    },
-    {
-        method: "get",
-        route: "/:ln_formated/coupon/:id",
-        controller: CouponsController,
-        action: "one"
-    },
-    {
-        method: "post",
-        route: "/coupon/rate",
-        controller: CouponsController,
-        action: "clicked"
-    },
-    {
-        method: "get",
-        route: "/:ln/stores",
-        controller: StoresController,
-        action: "all"
-    },
-    {
-        method: "get",
-        route: "/:ln/store/:id",
-        controller: StoresController,
-        action: "one"
-    },
-    {
-        method: "get",
-        route: "/:ln/stores-all",
-        controller: StoresController,
-        action: "getStoresWithAlphabeticalKeys"
-    },
-    {
-        method: "get",
-        route: "/:ln/categories-all",
-        controller: CategoriesController,
-        action: "getCategoriesWithAlphabeticalKeys"
-    },
-    {
-        method: "get",
-        route: "/:ln/categories",
-        controller: CategoriesController,
-        action: "all"
-    },
-    {
-        method: "get",
-        route: "/:ln/coupons/categories/:categoryId",
-        controller: CouponsController,
-        action: "couponsByCategory"
-    }
-]
+  {
+    method: "get",
+    route: "/:ln/coupons",
+    controller: CouponsController,
+    action: "all",
+  },
+  {
+    method: "get",
+    route: "/:ln_formated/coupon/:id",
+    controller: CouponsController,
+    action: "one",
+  },
+  {
+    method: "post",
+    route: "/coupon/rate",
+    controller: CouponsController,
+    action: "clicked",
+  },
+  {
+    method: "get",
+    route: "/:ln/stores",
+    controller: StoresController,
+    action: "all",
+  },
+  {
+    method: "get",
+    route: "/:ln/store/:id",
+    controller: StoresController,
+    action: "one",
+  },
+  {
+    method: "get",
+    route: "/:ln/stores-all-alphabetical",
+    controller: StoresController,
+    action: "getStoresWithAlphabeticalKeys",
+  },
+  {
+    method: "get",
+    route: "/:ln/stores-all",
+    controller: StoresController,
+    action: "getAllStores",
+  },
+  {
+    method: "get",
+    route: "/:ln/stores-by-category",
+    controller: StoresController,
+    action: "getStoresByCategory",
+  },
+  {
+    method: "get",
+    route: "/:ln/categories-all",
+    controller: CategoriesController,
+    action: "getCategoriesWithAlphabeticalKeys",
+  },
+  {
+    method: "get",
+    route: "/:ln/categories",
+    controller: CategoriesController,
+    action: "all",
+  },
+  {
+    method: "get",
+    route: "/:ln/coupons/categories/:categoryId",
+    controller: CouponsController,
+    action: "couponsByCategory",
+  },
+  {
+    method: "get",
+    route: "/:ln/store-search-suggestions",
+    controller: StoresController,
+    action: "getStoreSuggestions",
+  },
+];

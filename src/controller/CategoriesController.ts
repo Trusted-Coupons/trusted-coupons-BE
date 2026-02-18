@@ -3,71 +3,131 @@ import { NextFunction, Request, Response } from "express";
 import {
   extractLanguageAndCountry,
   getTableForLanguage,
-  isLangauageFormated,
-} from "../services/CouponLangaugeService";
+  isLanguageFormatted,
+} from "../services/CouponLanguageService";
 import { Category } from "../entity/Category";
 
-
 export class CategoriesController {
-  private categoriesRepsitory = AppDataSource.getRepository(Category);
+  private categoriesRepository = AppDataSource.getRepository(Category);
 
+  /**
+   * Helper to get table and country info.
+   */
   async getTableAndCountry(ln: string) {
     const { country } = extractLanguageAndCountry(ln);
     const { table, statusCode } = await getTableForLanguage(ln);
     return { table, country, statusCode };
   }
 
-  async all(_request: Request, _next: NextFunction, _response: Response) {
-    return await this.categoriesRepsitory
-    .createQueryBuilder()
-    .orderBy("category", "ASC")
-    .getMany();
+  /**
+   * Retrieve all categories.
+   *
+   * @param request - The request object.
+   * @param _next - The next function.
+   * @param response - The response object.
+   * @returns An array of categories.
+   */
+  async all(
+    request: Request,
+    _next: NextFunction,
+    response: Response
+  ): Promise<object[]> {
+    const {
+      query: { page = "1", perPage = "20" },
+    } = request;
 
+    try {
+      const limit = Number(perPage);
+      const offset = Number(page) > 0 ? (Number(page) - 1) * limit : 0;
+
+      const categories = await this.categoriesRepository
+        .createQueryBuilder("category")
+        .orderBy("category.category", "ASC")
+        .limit(limit)
+        .offset(offset)
+        .cache(false)
+        .getMany();
+
+      return categories;
+    } catch (error) {
+      console.error("Error in all:", error);
+      response.status(500).json({ error: "Failed to fetch categories" });
+      return [];
+    }
   }
 
+  /**
+   * Retrieve categories grouped by alphabetical keys.
+   *
+   * @param request - The request object.
+   * @param _next - The next function.
+   * @param response - The response object.
+   * @returns An object with categories grouped by first letter or an error object.
+   */
   async getCategoriesWithAlphabeticalKeys(
-    _request: Request,
+    request: Request,
     _next: NextFunction,
-    _response: Response
+    response: Response
   ): Promise<object | string> {
-    if (!isLangauageFormated(_request.params.ln)) {
-      // Return an error message if the language code is invalid
-      return "invalid language code";
+    if (!isLanguageFormatted(request.params.ln)) {
+      response.status(400).json({ error: "Invalid language code" });
+      return { error: "Invalid language code" };
     }
 
     const { table, country, statusCode } = await this.getTableAndCountry(
-      _request.params.ln
+      request.params.ln
     );
 
-    // Return an error message if the language is not found
     if (!country) {
-      return "Store language not found";
+      response.status(404).json({ error: "Category language not found" });
+      return { error: "Category language not found" };
     }
 
-    // Return an error message if the language is not found
     if (table === "none" || statusCode !== 200) {
-      return "Coupon language not found";
+      response.status(404).json({ error: "Category language not found" });
+      return { error: "Category language not found" };
     }
 
     try {
-      const stores = await this.categoriesRepsitory
-        .createQueryBuilder()
-        .orderBy("category", "ASC")
+      const {
+        query: { page = "1", perPage = "20" },
+      } = request;
+      const limit = Number(perPage);
+      const offset = Number(page) > 0 ? (Number(page) - 1) * limit : 0;
+
+      const categories = await this.categoriesRepository
+        .createQueryBuilder("category")
+        .orderBy("category.category", "ASC")
+        .limit(limit)
+        .offset(offset)
+        .cache(false)
         .getMany();
 
-      const categoriesWithAlphabeticalKeys = stores.reduce((acc, category) => {
-        const firstLetter = category.category.charAt(0).toLowerCase();
-        if (!acc[firstLetter]) {
-          acc[firstLetter] = [];
-        }
-        acc[firstLetter].push(category);
-        return acc;
-      }, {});
+      const categoriesWithAlphabeticalKeys = categories.reduce(
+        (acc: Record<string, Category[]>, category) => {
+          const firstLetter = category.category.charAt(0).toLowerCase();
+          acc[firstLetter] = acc[firstLetter] || [];
+          acc[firstLetter].push(category);
+          return acc;
+        },
+        {}
+      );
 
-      return categoriesWithAlphabeticalKeys;
+      const result: Record<string, Category[]> = {};
+      for (
+        let letter = "a".charCodeAt(0);
+        letter <= "z".charCodeAt(0);
+        letter++
+      ) {
+        const char = String.fromCharCode(letter);
+        result[char] = categoriesWithAlphabeticalKeys[char] || [];
+      }
+
+      return result;
     } catch (error) {
-      // Return an error message if an error occur
-      return "No stores available";
+      console.error("Error in getCategoriesWithAlphabeticalKeys:", error);
+      response.status(500).json({ error: "No categories available" });
+      return { error: "No categories available" };
     }
   }
 }

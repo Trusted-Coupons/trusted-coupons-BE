@@ -68,4 +68,10 @@ export const Routes = [
     controller: CouponsController,
     action: "couponsByCategory",
   },
+  {
+    method: "get",
+    route: "/:ln/store-search-suggestions",
+    controller: StoresController,
+    action: "getStoreSuggestions",
+  },
 ];

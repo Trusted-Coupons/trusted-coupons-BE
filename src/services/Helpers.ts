@@ -1,30 +1,38 @@
+/**
+ * Converts a string representation of an array into a string array.
+ *
+ * @param str - The string to convert (e.g., "['item1', 'item2']").
+ * @returns An array of strings.
+ */
 export function convertToArray(str: string): string[] {
-  // Remove leading and trailing double quotes
-  str = str.replace(/^"|\s*"$/g, "");
+  // Early return for empty or invalid strings
+  if (!str || str === "[]") return [];
 
-  // Remove leading and trailing square brackets
-  str = str.replace(/^\[|\]$/g, "");
+  // Trim quotes and brackets in one pass
+  const trimmed = str.replace(/^\[\s*"|"\s*\]$/g, "");
 
-  // Split the string by comma and single quotes
-  const array = str.split(`", "`);
-
-  // Remove any extra single quotes from array elements
-  const result = array.map(word => word.replace(/^'|'$/g, ""));
-  
-  return result;
+  // Split and clean elements
+  return trimmed
+    .split(`", "`)
+    .map((word) => word.replace(/^'|'$/g, ""))
+    .filter(Boolean); // Remove empty strings
 }
 
-export const sanitizeCircularReferences = (_data) => {
-    const seen = new WeakSet();
-    function replacer(_key, _value) {
-      // Check for circular reference
-      if (typeof _value === 'object' && _value !== null) {
-        if (seen.has(_value)) {
-          return;
-        }
-        seen.add(_value);
+/**
+ * Sanitizes circular references in an object for safe serialization.
+ *
+ * @param data - The data to sanitize.
+ * @returns The sanitized data with circular references removed.
+ */
+export function sanitizeCircularReferences<T>(data: T): T {
+  const seen = new WeakSet();
+  return JSON.parse(
+    JSON.stringify(data, (_key, value) => {
+      if (typeof value === "object" && value !== null) {
+        if (seen.has(value)) return undefined;
+        seen.add(value);
       }
-      return _value;
-    }
-    return JSON.parse(JSON.stringify(_data, replacer));
-  }
+      return value;
+    })
+  );
+}

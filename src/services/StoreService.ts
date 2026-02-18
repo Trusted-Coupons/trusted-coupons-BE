@@ -1,80 +1,97 @@
 import { Store } from "../entity/Store";
-// import { StoreMd } from "../entity/StoreMd";
 
 /**
  * Fills in the metadata variables for a store.
  *
- * @param {any} metadata - The metadata to fill in.
- * @param {Store} store - The store to fill in the metadata with.
- * @param {string|undefined} fullCountryName - The full country name to fill in the metadata with.
- * @return {any} The filled in metadata.
+ * @param metadata - The metadata to fill in.
+ * @param store - The store to fill in the metadata with.
+ * @param fullCountryName - The full country name to fill in the metadata with.
+ * @returns The filled-in metadata.
  */
-export const fillMetadatVariables = (metadata: any, store: Store, fullCountryName: string | undefined): any => {
-    // Get the number of coupons for the store
-    const storeCouponsLength = store.coupons.length;
+export const fillMetadatVariables = (
+  metadata: any[],
+  store: Store,
+  fullCountryName: string | undefined
+): any[] => {
+  // Cache to store processed metadata
+  const cacheKey = `${store.id}_${fullCountryName || "default"}`;
+  const cachedResult = metadataCache.get(cacheKey);
+  if (cachedResult) {
+    return cachedResult;
+  }
 
-    // Select a random coupon from the store to fill in the metadata with
-    let couponLabel: string;
-    if (storeCouponsLength === 0) {
-        couponLabel = "";
-    } else {
-        const randomCoupon = getRandomIntBetween(0, storeCouponsLength - 1);
-        couponLabel = store.coupons[randomCoupon].label;
+  // Get coupon label efficiently
+  const couponLabel = store.coupons.length
+    ? store.coupons[getRandomIntBetween(0, store.coupons.length - 1)].label
+    : "";
+
+  // Get current year and month
+  const { fullYear, month } = getCurrenYearAndMonth();
+
+  // Define replacements
+  const replacements: { [key: string]: string } = {
+    STORE: getStoreName(store.store),
+    DEAL: couponLabel,
+    CURRENT_MONTH: month,
+    CURRENT_YEAR: fullYear.toString(),
+    STORE_CATEGORY: store.mainCategory.replace(/_/g, " "),
+    COUNTRY: fullCountryName || "",
+    MY_WEBSITE: "trusted.coupons",
+  };
+
+  // Optimize replacements using a single pass
+  const result = metadata.map((item) => {
+    let { metadata_description, metadata_title } = item;
+    for (const [varName, value] of Object.entries(replacements)) {
+      const varToReplace = `{{${varName}}}`;
+      const regex = new RegExp(varToReplace, "g");
+      metadata_description = metadata_description.replace(regex, value);
+      metadata_title = metadata_title.replace(regex, value);
     }
+    return { ...item, metadata_description, metadata_title };
+  });
 
-    // Get the current year and month
-    const { fullYear, month } = getCurrenYearAndMonth();
+  // Cache result (evict oldest entry if at capacity)
+  evictMetadataCacheIfFull();
+  metadataCache.set(cacheKey, result);
 
-    // Get the current website name
-    const currentWebsiteName = 'trusted.coupons';
+  return result;
+};
 
-    // Define the replacements for the metadata
-    const replacements = {
-        STORE: getStoreName(store.store),
-        DEAL: couponLabel,
-        CURRENT_MONTH: month,
-        CURRENT_YEAR: fullYear,
-        STORE_CATEGORY: store.mainCategory.replace(/_/g, " "),
-        COUNTRY: fullCountryName,
-        MY_WEBSITE: currentWebsiteName
-    };
+// In-memory cache for processed metadata templates.
+// Keyed by store ID + country; bounded to avoid growing indefinitely.
+const METADATA_CACHE_MAX = 2000;
+const metadataCache = new Map<string, any[]>();
 
-    // Fill in the metadata with the replacements
-    for (const key in metadata) {
-        for (const varName in replacements) {
-            const varToReplace = `{{${varName}}}`;
-            metadata[key].metadata_description = metadata[key].metadata_description.replace(new RegExp(varToReplace, 'g'), replacements[varName]);
-            metadata[key].metadata_title = metadata[key].metadata_title.replace(new RegExp(varToReplace, 'g'), replacements[varName]);
-        }
-    }
-
-    return metadata;
+function evictMetadataCacheIfFull(): void {
+  if (metadataCache.size >= METADATA_CACHE_MAX) {
+    const firstKey = metadataCache.keys().next().value;
+    metadataCache.delete(firstKey);
+  }
 }
 
 const getStoreName = (storeName: string): string => {
-    const dotIndex1 = storeName.indexOf(".");
-    const dotIndex2 = storeName.lastIndexOf(".");
+  const dotIndex1 = storeName.indexOf(".");
+  const dotIndex2 = storeName.lastIndexOf(".");
 
-    if (dotIndex1 !== -1 && dotIndex2 !== -1 && dotIndex1 !== dotIndex2) {
-        return storeName.substring(dotIndex1 + 1, dotIndex2);
-    } else {
-        return storeName.substring(0, dotIndex2);
-    }
-}
+  if (dotIndex1 !== -1 && dotIndex2 !== -1 && dotIndex1 !== dotIndex2) {
+    return storeName.substring(dotIndex1 + 1, dotIndex2);
+  }
+  return storeName.substring(
+    0,
+    dotIndex2 !== -1 ? dotIndex2 : storeName.length
+  );
+};
 
 const getCurrenYearAndMonth = () => {
-    const date = new Date(); // Current date
-    const month = date.toLocaleString('default', { month: 'long' });
+  const date = new Date();
+  return {
+    fullYear: date.getFullYear(),
+    month: date.toLocaleString("default", { month: "long" }),
+  };
+};
 
-    return {
-        fullYear: date.getFullYear(),
-        month
-    }
-}
-
-const getRandomIntBetween = (min: number, max: number) => {
-    if (min === max) {
-        return max;
-    }
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+const getRandomIntBetween = (min: number, max: number): number => {
+  if (min === max) return max;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 };

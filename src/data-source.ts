@@ -10,7 +10,7 @@ require("dotenv").config({ path: ".env" });
 export const AppDataSource = new DataSource({
   type: "postgres",
   host: process.env.DB_HOST,
-  port: process.env.PORT ? parseInt(process.env.PORT) : 25060,
+  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 25060,
   username: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
@@ -22,5 +22,9 @@ export const AppDataSource = new DataSource({
   subscribers: [],
   ssl: {
     rejectUnauthorized: false, // This is often needed for DigitalOcean connections
+  },
+  extra: {
+    max: 20, // Max connections in pool
+    idleTimeoutMillis: 30000, // Close idle connections after 30s
   },
 });

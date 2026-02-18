@@ -1,209 +1,201 @@
 import { AppDataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
-import { Coupon } from "../entity/Coupon";
 import {
   getTableForLanguage,
-  isLangauageFormated,
-} from "../services/CouponLangaugeService";
+  isLanguageFormatted,
+} from "../services/CouponLanguageService";
 import { Category } from "../entity/Category";
 
-export class CouponsController {
-  private couponsWebRepository = AppDataSource.getRepository(Coupon);
-  private categoriesRepsitory = AppDataSource.getRepository(Category);
+/**
+ * Validates and returns the full coupon table name.
+ * Prevents SQL injection from dynamic table segments.
+ */
+function buildTableName(table: string): string {
+  if (!/^[a-z]{2}_[a-z]+$/.test(table)) {
+    throw new Error(`Invalid table name segment: ${table}`);
+  }
+  return `coupons_website_${table}`;
+}
 
-  /**
-   * Retrieve all coupons for a specific language.
-   *
-   * @param {Request} _request - The request object.
-   * @param {NextFunction} _next - The next function.
-   * @param {Response} _response - The response object.
-   * @return {Promise<Object[] | string>} An array of mapped coupons or an error message.
-   */
+export class CouponsController {
+  private categoriesRepository = AppDataSource.getRepository(Category);
+
   async all(
-    _request: Request,
+    request: Request,
     _next: NextFunction,
-    _response: Response
-  ): Promise<object[] | string> {
-    // Destructure the query parameters from the request
+    response: Response
+  ): Promise<object[] | object> {
     const {
       query: { page, perPage, store },
-    } = _request;
+    } = request;
 
-    // Check if the language code is formatted correctly
-    if (!isLangauageFormated(_request.params.ln)) {
-      // Return an error message if the language code is invalid
-      return "invalid language code";
+    if (!isLanguageFormatted(request.params.ln)) {
+      response.status(400).json({ error: "Invalid language code" });
+      return { error: "Invalid language code" };
     }
 
-    // Retrieve the table name and status code for the specified language
-    const { table, statusCode } = await getTableForLanguage(_request.params.ln);
+    const { table, statusCode } = await getTableForLanguage(request.params.ln);
 
-    // Return an error message if the language is not found
     if (statusCode !== 200) {
-      return "Coupon language not found";
+      response.status(404).json({ error: "Coupon language not found" });
+      return { error: "Coupon language not found" };
     }
 
     try {
-      // Set the table path for the coupons repository
-      this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
-
-      // Calculate the limit and offset for pagination
+      const tableName = buildTableName(table);
       const limit = Number(perPage) || 20;
-      const offset = (Number(page) - 1) * limit;
+      const offset = Number(page) > 0 ? (Number(page) - 1) * limit : 0;
 
-      // Build the query to retrieve the coupons from the repository
-      const query = this.couponsWebRepository
-        .createQueryBuilder()
-        .limit(limit)
-        .offset(offset);
+      let coupons: any[];
+      let count: number;
 
-      // If the store is provided, filter the coupons by the store name
       if (store) {
-        query.where({ store });
+        [coupons, [{ count }]] = await Promise.all([
+          AppDataSource.query(
+            `SELECT * FROM "${tableName}" WHERE store = $1 LIMIT $2 OFFSET $3`,
+            [store, limit, offset]
+          ),
+          AppDataSource.query(
+            `SELECT COUNT(*) AS count FROM "${tableName}" WHERE store = $1`,
+            [store]
+          ),
+        ]);
+      } else {
+        [coupons, [{ count }]] = await Promise.all([
+          AppDataSource.query(
+            `SELECT * FROM "${tableName}" LIMIT $1 OFFSET $2`,
+            [limit, offset]
+          ),
+          AppDataSource.query(`SELECT COUNT(*) AS count FROM "${tableName}"`),
+        ]);
       }
 
-      // Retrieve the coupons from the repository
-      const [coupons, count] = await query.getManyAndCount();
-
-      // Map the coupons with the table name and total count
-      const mappedCoupons = coupons.map((coupon) => ({
+      const total = Number(count);
+      return coupons.map((coupon) => ({
         ...coupon,
         table_name: table,
-        total_coupons_count: count,
+        total_coupons_count: total,
       }));
-
-      // Return the mapped coupons
-      return mappedCoupons;
     } catch (error) {
-      // Return an error message if an error occurs
-      return "Coupon language not found";
+      console.error("Error in all:", error);
+      response.status(500).json({ error: "Failed to fetch coupons" });
+      return { error: "Failed to fetch coupons" };
     }
   }
 
-  /**
-   * Retrieve a specific coupon by its ID for a given language.
-   *
-   * @param {Request} request - The request object.
-   * @param {Response} _response - The response object.
-   * @param {NextFunction} _next - The next function.
-   * @return {Promise<Object | string>} The coupon object if found, or an error message.
-   */
   async one(
     request: Request,
-    _response: Response,
+    response: Response,
     _next: NextFunction
   ): Promise<object | string> {
-    // Extract the coupon ID and language code from the request parameters
     const id = request.params.id;
     const ln_formated = request.params.ln_formated;
 
-    // Set the table path for the coupons repository
-    this.couponsWebRepository.metadata.tablePath = `coupons_website_${ln_formated}`;
-
-    // Find the coupon by its ID using the coupons repository
-    const coupon = await this.couponsWebRepository.findOneBy({ offer_id: id });
-    if (coupon) {
-      coupon.table_name = ln_formated;
+    if (!isLanguageFormatted(ln_formated)) {
+      return response.status(400).json({ error: "Invalid language code" });
     }
 
-    // If the coupon is not found, return an error message
-    if (!coupon) {
-      return "Coupon not found";
-    }
+    try {
+      const tableName = buildTableName(ln_formated);
+      const [coupon] = await AppDataSource.query(
+        `SELECT * FROM "${tableName}" WHERE offer_id = $1 LIMIT 1`,
+        [id]
+      );
 
-    // Return the coupon object
-    return coupon;
+      if (!coupon) {
+        return response.status(404).json({ error: "Coupon not found" });
+      }
+
+      return response.status(200).json({ ...coupon, table_name: ln_formated });
+    } catch (error) {
+      console.error("Error in one:", error);
+      return response.status(500).json({ error: "Failed to fetch coupon" });
+    }
   }
+
   async clicked(
     request: Request,
-    _response: Response,
+    response: Response,
     _next: NextFunction
   ): Promise<object | string> {
-    // Extract the coupon ID and language code from the request parameters
     const id = request.body.coupon_id;
-    // const coupons_table = request.body.coupons_table;
-    // Set the table path for the coupons repository
-    // this.couponsWebRepository.metadata.tablePath = `coupons_website_${coupons_table}`;
+    const couponsTable = request.body.coupons_table; // e.g. "us_english"
 
-    // Find the coupon by its ID using the coupons repository
-    const coupon = await this.couponsWebRepository
-      .createQueryBuilder()
-      .update()
-      .set({ rating: () => "rating + 1" })
-      .where("id = :id", { id })
-      .execute();
-
-    // If the coupon is not found, return an error message
-    if (!coupon) {
-      return "Coupon not found";
+    if (!id || !couponsTable) {
+      return response
+        .status(400)
+        .json({ error: "coupon_id and coupons_table are required" });
     }
 
-    // Return the coupon object
-    return {
-      message: "Coupon clicked",
-      statusCode: 200,
-    };
+    try {
+      const tableName = buildTableName(couponsTable);
+      const result = await AppDataSource.query(
+        `UPDATE "${tableName}" SET rating = rating + 1 WHERE id = $1`,
+        [id]
+      );
+
+      // pg driver returns [rows, rowCount] for UPDATE
+      if (result[1] === 0) {
+        return response.status(404).json({ error: "Coupon not found" });
+      }
+
+      return response.status(200).json({ message: "Coupon clicked", statusCode: 200 });
+    } catch (error) {
+      console.error("Error in clicked:", error);
+      return response.status(500).json({ error: "Failed to update coupon" });
+    }
   }
 
   async couponsByCategory(
     request: Request,
-    _response: Response,
+    response: Response,
     _next: NextFunction
   ): Promise<object | string> {
-    // Destructure the query parameters from the request
     const {
       query: { page, perPage },
     } = request;
 
-    // Check if the language code is formatted correctly
-    if (!isLangauageFormated(request.params.ln)) {
-      // Return an error message if the language code is invalid
-      return "invalid language code";
+    if (!isLanguageFormatted(request.params.ln)) {
+      return response.status(400).json({ error: "Invalid language code" });
     }
 
-    // Retrieve the table name and status code for the specified language
     const { table, statusCode } = await getTableForLanguage(request.params.ln);
 
-    // Return an error message if the language is not found
     if (statusCode !== 200) {
-      return "Coupon language not found";
+      return response.status(404).json({ error: "Coupon language not found" });
     }
 
     try {
-      // Set the table path for the coupons repository
-      this.couponsWebRepository.metadata.tablePath = `coupons_website_${table}`;
-
-      // Calculate the limit and offset for pagination
+      const tableName = buildTableName(table);
       const limit = Number(perPage) || 20;
-      const offset = (Number(page) - 1) * limit;
+      const offset = Number(page) > 0 ? (Number(page) - 1) * limit : 0;
 
       const categoryId = request.params.categoryId;
-      const category = await this.categoriesRepsitory.findOneBy({
-        id: Number(categoryId),
+      const category = await this.categoriesRepository.findOne({
+        where: { id: Number(categoryId) },
+        cache: false,
       });
 
-      // Retrieve the coupons from the repository
-      const query = this.couponsWebRepository
-        .createQueryBuilder("coupon")
-        .where("coupon.categories like :category", {
-          category: `%${category?.category}%`,
-        })
-        .limit(limit)
-        .offset(offset);
+      if (!category) {
+        return response.status(404).json({ error: "Category not found" });
+      }
 
-      const coupons = await query.getMany();
+      const coupons = await AppDataSource.query(
+        `SELECT * FROM "${tableName}"
+         WHERE categories::text LIKE $1
+         LIMIT $2 OFFSET $3`,
+        [`%${category.category}%`, limit, offset]
+      );
 
-      // Map the coupons with the table name
-      const mappedCoupons = coupons.map((coupon) => ({
+      const mappedCoupons = coupons.map((coupon: any) => ({
         ...coupon,
         table_name: table,
       }));
 
-      // Return the mapped coupons
-      return mappedCoupons;
+      return response.status(200).json(mappedCoupons);
     } catch (error) {
-      // Return an error message if an error occurs
-      return "Coupon language not found";
+      console.error("Error in couponsByCategory:", error);
+      return response.status(500).json({ error: "Failed to fetch coupons" });
     }
   }
 }
